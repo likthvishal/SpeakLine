@@ -256,7 +256,7 @@ mypy voicecomment/
 
 ## Contributing
 
-Contributions welcome! Please open an issue or pull request.
+Contributions welcome! Please open an issue or pull request. Please reachout at contact@speakline.org for more information
 
 ## License
 
