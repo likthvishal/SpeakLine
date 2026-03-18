@@ -69,6 +69,12 @@ def record(
         envvar="OPENAI_API_KEY",
         hidden=True,
     ),
+    preview: bool = typer.Option(
+        False,
+        "--preview",
+        "-p",
+        help="Show what would be inserted without modifying the file",
+    ),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose output"),
 ) -> None:
     """Record voice and insert as comment in a source file.
@@ -81,6 +87,7 @@ def record(
         voicecomment record myfile.py 42
         voicecomment record main.js 15 --duration 5
         voicecomment record code.go 10 --backend openai
+        voicecomment record myfile.py 42 --preview
     """
     setup_logging(verbose)
 
@@ -101,12 +108,40 @@ def record(
         console.print("[dim]Recording... (speak, then pause to stop)[/dim]")
 
     try:
-        comment = commenter.record_and_insert(
-            filepath=filepath,
-            line_number=line_number,
-            duration=duration,
-        )
-        console.print(f"[bold green]Comment inserted:[/bold green] {comment}")
+        # Get transcribed comment first
+        comment = commenter.transcribe_only(duration=duration)
+
+        if preview:
+            # Show preview without modifying file
+            import os
+            if not os.path.exists(filepath):
+                console.print(f"[bold red]Error:[/bold red] File not found: {filepath}")
+                raise typer.Exit(code=1)
+
+            with open(filepath, "r") as f:
+                original_code = f.read()
+
+            parser = commenter._get_parser(filepath)
+            preview_code = parser.insert_comment(original_code, comment, line_number)
+
+            console.print("\n[bold yellow]PREVIEW MODE (file not modified)[/bold yellow]")
+            console.print(f"\n[bold cyan]Transcribed comment:[/bold cyan]\n{comment}\n")
+            console.print("[bold cyan]File preview (first 500 chars):[/bold cyan]")
+            preview_text = preview_code[:500]
+            if len(preview_code) > 500:
+                preview_text += "\n[dim]...(truncated)[/dim]"
+            console.print("[dim]" + preview_text + "[/dim]")
+            console.print("\n[bold green]Ready to commit![/bold green]")
+            console.print("[dim]Run again without --preview to write to the file.[/dim]")
+        else:
+            # Original behavior: write to file
+            commenter.insert_comment_to_file(
+                filepath=filepath,
+                comment=comment,
+                line_number=line_number,
+            )
+            console.print(f"[bold green]Comment inserted:[/bold green] {comment}")
+
     except FileNotFoundError as e:
         console.print(f"[bold red]Error:[/bold red] {e}")
         raise typer.Exit(code=1)
