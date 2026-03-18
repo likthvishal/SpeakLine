@@ -89,6 +89,14 @@ class GenericParser(ParserBase):
         Raises:
             InvalidLineNumberError: If line number is out of range.
         """
+        # Validate line_number is a valid integer
+        if not isinstance(line_number, int):
+            raise InvalidLineNumberError(f"Line number must be an integer, got {type(line_number).__name__}")
+
+        # Validate line_number is a valid integer
+        if not isinstance(line_number, int):
+            raise InvalidLineNumberError(f"Line number must be an integer, got {type(line_number).__name__}")
+
         lines = code.split("\n")
 
         if line_number < 1 or line_number > len(lines) + 1:
@@ -130,6 +138,10 @@ class PythonParser(ParserBase):
         Raises:
             InvalidLineNumberError: If line number is out of range.
         """
+        # Validate line_number is a valid integer
+        if not isinstance(line_number, int):
+            raise InvalidLineNumberError(f"Line number must be an integer, got {type(line_number).__name__}")
+
         lines = code.split("\n")
 
         if line_number < 1 or line_number > len(lines) + 1:
@@ -170,6 +182,10 @@ class JavaScriptParser(ParserBase):
         Raises:
             InvalidLineNumberError: If line number is out of range.
         """
+        # Validate line_number is a valid integer
+        if not isinstance(line_number, int):
+            raise InvalidLineNumberError(f"Line number must be an integer, got {type(line_number).__name__}")
+
         lines = code.split("\n")
 
         if line_number < 1 or line_number > len(lines) + 1:
@@ -214,6 +230,10 @@ class GoParser(ParserBase):
         Raises:
             InvalidLineNumberError: If line number is out of range.
         """
+        # Validate line_number is a valid integer
+        if not isinstance(line_number, int):
+            raise InvalidLineNumberError(f"Line number must be an integer, got {type(line_number).__name__}")
+
         lines = code.split("\n")
 
         if line_number < 1 or line_number > len(lines) + 1:
@@ -240,6 +260,10 @@ class RustParser(ParserBase):
 
     def insert_comment(self, code: str, comment: str, line_number: int) -> str:
         """Insert Rust comment at the specified line."""
+        # Validate line_number is a valid integer
+        if not isinstance(line_number, int):
+            raise InvalidLineNumberError(f"Line number must be an integer, got {type(line_number).__name__}")
+
         lines = code.split("\n")
 
         if line_number < 1 or line_number > len(lines) + 1:
@@ -266,6 +290,10 @@ class JavaParser(ParserBase):
 
     def insert_comment(self, code: str, comment: str, line_number: int) -> str:
         """Insert Java comment at the specified line."""
+        # Validate line_number is a valid integer
+        if not isinstance(line_number, int):
+            raise InvalidLineNumberError(f"Line number must be an integer, got {type(line_number).__name__}")
+
         lines = code.split("\n")
 
         if line_number < 1 or line_number > len(lines) + 1:
@@ -292,6 +320,10 @@ class CSharpParser(ParserBase):
 
     def insert_comment(self, code: str, comment: str, line_number: int) -> str:
         """Insert C# comment at the specified line."""
+        # Validate line_number is a valid integer
+        if not isinstance(line_number, int):
+            raise InvalidLineNumberError(f"Line number must be an integer, got {type(line_number).__name__}")
+
         lines = code.split("\n")
 
         if line_number < 1 or line_number > len(lines) + 1:
@@ -318,6 +350,10 @@ class RubyParser(ParserBase):
 
     def insert_comment(self, code: str, comment: str, line_number: int) -> str:
         """Insert Ruby comment at the specified line."""
+        # Validate line_number is a valid integer
+        if not isinstance(line_number, int):
+            raise InvalidLineNumberError(f"Line number must be an integer, got {type(line_number).__name__}")
+
         lines = code.split("\n")
 
         if line_number < 1 or line_number > len(lines) + 1:
@@ -344,6 +380,10 @@ class CppParser(ParserBase):
 
     def insert_comment(self, code: str, comment: str, line_number: int) -> str:
         """Insert C/C++ comment at the specified line."""
+        # Validate line_number is a valid integer
+        if not isinstance(line_number, int):
+            raise InvalidLineNumberError(f"Line number must be an integer, got {type(line_number).__name__}")
+
         lines = code.split("\n")
 
         if line_number < 1 or line_number > len(lines) + 1:

@@ -65,8 +65,9 @@ def record(
     api_key: Optional[str] = typer.Option(
         None,
         "--api-key",
-        help="OpenAI API key (for openai backend)",
+        help="OpenAI API key (for openai backend). Use OPENAI_API_KEY env var instead",
         envvar="OPENAI_API_KEY",
+        hidden=True,
     ),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose output"),
 ) -> None:
@@ -137,8 +138,9 @@ def transcribe(
     api_key: Optional[str] = typer.Option(
         None,
         "--api-key",
-        help="OpenAI API key (for openai backend)",
+        help="OpenAI API key (for openai backend). Use OPENAI_API_KEY env var instead",
         envvar="OPENAI_API_KEY",
+        hidden=True,
     ),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose output"),
 ) -> None:

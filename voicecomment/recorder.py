@@ -159,6 +159,7 @@ class LocalAudioRecorder(RecorderBase):
         import pyaudio
 
         pa = self._get_pyaudio()
+        stream = None
 
         try:
             stream = pa.open(
@@ -210,8 +211,12 @@ class LocalAudioRecorder(RecorderBase):
                         silence_start = None
 
         finally:
-            stream.stop_stream()
-            stream.close()
+            if stream is not None:
+                try:
+                    stream.stop_stream()
+                    stream.close()
+                except Exception as e:
+                    logger.warning(f"Error closing audio stream: {e}")
 
         # Convert all frames to numpy array
         audio_data = b"".join(frames)

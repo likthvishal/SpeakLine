@@ -111,6 +111,9 @@ class VoiceCommenter:
             VoiceCommenterError: If any step fails.
             FileNotFoundError: If the file doesn't exist.
         """
+        # Validate filepath to prevent path traversal
+        self._validate_filepath(filepath)
+
         if not os.path.exists(filepath):
             raise FileNotFoundError(f"File not found: {filepath}")
 
@@ -224,12 +227,23 @@ class VoiceCommenter:
             VoiceCommenterError: If insertion fails.
             FileNotFoundError: If the file doesn't exist.
         """
+        # Validate filepath to prevent path traversal
+        self._validate_filepath(filepath)
+
         if not os.path.exists(filepath):
             raise FileNotFoundError(f"File not found: {filepath}")
 
-        # Read file
-        with open(filepath, "r", encoding="utf-8") as f:
-            code = f.read()
+        # Read file with encoding detection
+        try:
+            with open(filepath, "r", encoding="utf-8") as f:
+                code = f.read()
+        except UnicodeDecodeError:
+            logger.warning(f"File {filepath} is not UTF-8, attempting latin-1")
+            try:
+                with open(filepath, "r", encoding="latin-1") as f:
+                    code = f.read()
+            except Exception as e:
+                raise VoiceCommenterError(f"Cannot read file (unsupported encoding): {e}")
 
         # Get parser for file
         parser = self._get_parser(filepath)
@@ -240,11 +254,49 @@ class VoiceCommenter:
         except ParserError as e:
             raise VoiceCommenterError(f"Failed to insert comment: {e}")
 
-        # Write back
-        with open(filepath, "w", encoding="utf-8") as f:
-            f.write(updated_code)
+        # Write back atomically (to temp file first, then rename)
+        import tempfile
+
+        try:
+            # Write to temporary file in same directory for atomic rename
+            temp_fd, temp_path = tempfile.mkstemp(
+                dir=os.path.dirname(filepath) or ".",
+                text=True
+            )
+            try:
+                with os.fdopen(temp_fd, "w", encoding="utf-8") as f:
+                    f.write(updated_code)
+                # Atomic rename
+                os.replace(temp_path, filepath)
+            except Exception:
+                # Clean up temp file on error
+                try:
+                    os.unlink(temp_path)
+                except OSError:
+                    pass
+                raise
+        except Exception as e:
+            raise VoiceCommenterError(f"Failed to write file: {e}")
 
         logger.info(f"Comment written to {filepath}:{line_number}")
+
+    def _validate_filepath(self, filepath: str) -> None:
+        """Validate filepath to prevent directory traversal attacks.
+
+        Args:
+            filepath: Path to validate.
+
+        Raises:
+            VoiceCommenterError: If path is invalid or tries to escape.
+        """
+        # Reject null bytes
+        if "\x00" in filepath:
+            raise VoiceCommenterError("Invalid filepath: contains null bytes")
+
+        # Reject attempts to write to system directories
+        abs_path = os.path.abspath(filepath)
+        if abs_path.startswith(("/etc", "/sys", "/proc")) or abs_path.startswith(("C:\\Windows", "C:\\Program Files")):
+            raise VoiceCommenterError(f"Cannot modify system files: {filepath}")
 
     @property
     def language(self) -> Optional[str]:

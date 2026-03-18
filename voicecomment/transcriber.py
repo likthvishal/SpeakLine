@@ -198,17 +198,18 @@ class OpenAITranscriber(TranscriberBase):
         client = self._get_client()
 
         # Save audio to temporary WAV file (API requires file upload)
-        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp_file:
-            tmp_path = tmp_file.name
-            self._save_wav(tmp_path, audio, sample_rate)
-
+        # Use delete=True with context manager for secure cleanup
         try:
-            with open(tmp_path, "rb") as audio_file:
-                kwargs = {"model": self._model, "file": audio_file}
-                if self._language:
-                    kwargs["language"] = self._language
+            with tempfile.NamedTemporaryFile(suffix=".wav", delete=True) as tmp_file:
+                tmp_path = tmp_file.name
+                self._save_wav(tmp_path, audio, sample_rate)
 
-                response = client.audio.transcriptions.create(**kwargs)
+                with open(tmp_path, "rb") as audio_file:
+                    kwargs = {"model": self._model, "file": audio_file}
+                    if self._language:
+                        kwargs["language"] = self._language
+
+                    response = client.audio.transcriptions.create(**kwargs)
 
             text = response.text.strip()
             logger.info(f"API transcription complete: '{text[:50]}...' ({len(text)} chars)")
@@ -217,12 +218,6 @@ class OpenAITranscriber(TranscriberBase):
 
         except Exception as e:
             raise APIError(f"OpenAI API transcription failed: {e}")
-        finally:
-            # Clean up temp file
-            try:
-                os.unlink(tmp_path)
-            except OSError:
-                pass
 
     def _save_wav(self, path: str, audio: np.ndarray, sample_rate: int) -> None:
         """Save audio array to WAV file."""
