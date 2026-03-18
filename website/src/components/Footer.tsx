@@ -11,16 +11,16 @@ export default function Footer() {
       { label: 'API Reference', href: '#api' },
     ],
     resources: [
-      { label: 'Documentation', href: '#' },
-      { label: 'GitHub', href: 'https://github.com/yourusername/voicecomment' },
-      { label: 'PyPI', href: 'https://pypi.org/project/voicecomment' },
-      { label: 'Changelog', href: '#' },
+      { label: 'Documentation', href: 'https://github.com/likthvishal/SpeakLine#readme' },
+      { label: 'GitHub', href: 'https://github.com/likthvishal/SpeakLine' },
+      { label: 'PyPI', href: 'https://pypi.org/project/speakline' },
+      { label: 'Changelog', href: 'https://github.com/likthvishal/SpeakLine/releases' },
     ],
     community: [
-      { label: 'Contributing', href: '#' },
-      { label: 'Issues', href: 'https://github.com/yourusername/voicecomment/issues' },
-      { label: 'Discussions', href: '#' },
-      { label: 'Twitter', href: '#' },
+      { label: 'Contributing', href: 'https://github.com/likthvishal/SpeakLine/blob/master/README.md#contributing' },
+      { label: 'Issues', href: 'https://github.com/likthvishal/SpeakLine/issues' },
+      { label: 'Discussions', href: 'https://github.com/likthvishal/SpeakLine/discussions' },
+      { label: 'Twitter', href: 'https://twitter.com/speaklinedev' },
     ],
   };
 
@@ -34,14 +34,14 @@ export default function Footer() {
               <div className="p-2 rounded-lg bg-gradient-to-br from-sky-500 to-violet-500">
                 <Mic className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-white">VoiceComment</span>
+              <span className="text-xl font-bold text-white">SpeakLine</span>
             </a>
             <p className="text-slate-500 text-sm mb-4">
               Turn your spoken thoughts into well-formatted code comments.
             </p>
             <div className="flex gap-3">
               <a
-                href="https://github.com/yourusername/voicecomment"
+                href="https://github.com/likthvishal/SpeakLine"
                 className="p-2 rounded-lg bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
               >
                 <Github className="w-5 h-5" />
@@ -78,7 +78,7 @@ export default function Footer() {
         {/* Bottom */}
         <div className="mt-12 pt-8 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-slate-500 text-sm">
-            &copy; {currentYear} VoiceComment. MIT License.
+            &copy; {currentYear} SpeakLine. MIT License.
           </p>
           <p className="text-slate-500 text-sm flex items-center gap-1">
             Built with <Heart className="w-4 h-4 text-red-500" /> by developers who believe code comments should be as natural as talking.

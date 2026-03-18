@@ -20,9 +20,9 @@ export default function Installation() {
   ];
 
   const commands = {
-    pip: 'pip install voicecomment',
-    source: `git clone https://github.com/yourusername/voicecomment
-cd voicecomment
+    pip: 'pip install speakline',
+    source: `git clone https://github.com/likthvishal/SpeakLine
+cd SpeakLine
 pip install -e .`,
     prereq: {
       macos: 'brew install portaudio',
@@ -44,7 +44,7 @@ pip install -e .`,
             <span className="gradient-text"> Seconds</span>
           </h2>
           <p className="text-slate-400 text-lg max-w-2xl mx-auto">
-            Install VoiceComment and start recording your first comment in under a minute.
+            Install SpeakLine and start recording your first comment in under a minute.
           </p>
         </div>
 
@@ -145,14 +145,14 @@ pip install -e .`,
                       <div className="text-slate-500"># Record and insert comment at line 42</div>
                       <div>
                         <span className="text-emerald-400">$</span>{' '}
-                        <span className="text-sky-400">voicecomment</span>{' '}
+                        <span className="text-sky-400">speakline</span>{' '}
                         <span className="text-amber-400">record</span>{' '}
                         <span className="text-slate-300">myfile.py 42</span>
                       </div>
                       <div className="mt-2 text-slate-500"># Or just transcribe</div>
                       <div>
                         <span className="text-emerald-400">$</span>{' '}
-                        <span className="text-sky-400">voicecomment</span>{' '}
+                        <span className="text-sky-400">speakline</span>{' '}
                         <span className="text-amber-400">transcribe</span>
                       </div>
                     </code>

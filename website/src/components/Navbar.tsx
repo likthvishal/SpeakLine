@@ -21,7 +21,7 @@ export default function Navbar() {
             <div className="p-2 rounded-lg bg-gradient-to-br from-sky-500 to-violet-500 group-hover:scale-110 transition-transform">
               <Mic className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xl font-bold text-white">VoiceComment</span>
+            <span className="text-xl font-bold text-white">SpeakLine</span>
           </a>
 
           {/* Desktop Nav */}
@@ -40,7 +40,7 @@ export default function Navbar() {
           {/* CTA Buttons */}
           <div className="hidden md:flex items-center gap-3">
             <a
-              href="https://github.com/yourusername/voicecomment"
+              href="https://github.com/likthvishal/SpeakLine"
               target="_blank"
               rel="noopener noreferrer"
               className="btn-secondary flex items-center gap-2 text-sm py-2"

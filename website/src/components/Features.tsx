@@ -33,8 +33,8 @@ const features = [
   },
   {
     icon: Zap,
-    title: 'Production Ready',
-    description: 'Full type hints, comprehensive error handling, and extensive logging.',
+    title: 'Security Hardened',
+    description: 'Atomic file writes, path traversal protection, preview mode, and comprehensive error handling.',
     color: 'from-blue-500 to-indigo-500',
   },
 ];

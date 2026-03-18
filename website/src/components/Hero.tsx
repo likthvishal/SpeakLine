@@ -66,13 +66,19 @@ export default function Hero() {
               <p className="text-slate-500"># Record and insert comment at line 42</p>
               <p>
                 <span className="text-emerald-400">$</span>{' '}
-                <span className="text-sky-400">voicecomment</span>{' '}
+                <span className="text-sky-400">speakline</span>{' '}
                 <span className="text-amber-400">record</span>{' '}
                 <span className="text-slate-300">myfile.py 42</span>
               </p>
-              <p className="text-slate-500 mt-4"># Output:</p>
-              <p className="text-violet-400">Recording... (speak, then pause to stop)</p>
-              <p className="text-emerald-400">Comment inserted: "Calculate the factorial recursively"</p>
+              <p className="text-slate-500 mt-4"># Preview before writing:</p>
+              <p>
+                <span className="text-emerald-400">$</span>{' '}
+                <span className="text-sky-400">speakline</span>{' '}
+                <span className="text-amber-400">record</span>{' '}
+                <span className="text-slate-300">myfile.py 42 --preview</span>
+              </p>
+              <p className="text-violet-400 mt-2">✓ PREVIEW MODE (file not modified)</p>
+              <p className="text-emerald-400">Ready to commit!</p>
             </div>
           </div>
         </div>
