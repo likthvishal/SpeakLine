@@ -1,13 +1,24 @@
-# VoiceComment
+<p align="center">
+  <img src="assets/logo.png" alt="SpeakLine Logo" width="300">
+</p>
 
-**Record voice and insert as inline code comments across any language and IDE.**
+<h1 align="center">SpeakLine</h1>
 
-Turn your spoken thoughts into well-formatted code comments with a single command. Works with Python, JavaScript, TypeScript, Go, Rust, Java, and more.
+<p align="center">
+  <strong>Record voice and insert as inline code comments across any language and IDE.</strong>
+</p>
 
-![Python](https://img.shields.io/badge/python-3.9+-blue.svg)
-![License](https://img.shields.io/badge/license-MIT-green.svg)
-![Status](https://img.shields.io/badge/status-beta-blue.svg)
-![Tests](https://img.shields.io/badge/tests-passing-brightgreen.svg)
+<p align="center">
+  Turn your spoken thoughts into well-formatted code comments with a single command.<br>
+  Works with Python, JavaScript, TypeScript, Go, Rust, Java, and more.
+</p>
+
+<p align="center">
+  <a href="https://pypi.org/project/speakline/"><img src="https://img.shields.io/pypi/v/speakline.svg" alt="PyPI"></a>
+  <img src="https://img.shields.io/badge/python-3.9+-blue.svg" alt="Python">
+  <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License">
+  <img src="https://img.shields.io/badge/status-beta-orange.svg" alt="Status">
+</p>
 
 ## Features
 
@@ -42,13 +53,13 @@ PortAudio is typically bundled. If not, download from [PortAudio Downloads](http
 ### Install Package
 
 ```bash
-pip install voicecomment
+pip install speakline
 ```
 
 Or from source (development):
 ```bash
-git clone https://github.com/yourusername/voicecomment
-cd voicecomment
+git clone https://github.com/likthvishal/SpeakLine
+cd SpeakLine
 pip install -e .
 ```
 
@@ -58,25 +69,25 @@ pip install -e .
 
 ```bash
 # Record and insert comment at line 42
-voicecomment record myfile.py 42
+speakline record myfile.py 42
 
 # Preview before writing (recommended!)
-voicecomment record myfile.py 42 --preview
+speakline record myfile.py 42 --preview
 
 # With fixed duration (5 seconds)
-voicecomment record myfile.py 42 --duration 5
+speakline record myfile.py 42 --duration 5
 
 # Transcribe without modifying file
-voicecomment transcribe
+speakline transcribe
 
 # Insert comment directly (no recording)
-voicecomment insert myfile.py 42 "This is my comment"
+speakline insert myfile.py 42 "This is my comment"
 ```
 
 ### Python API
 
 ```python
-from voicecomment import VoiceCommenter
+from voicecomment import VoiceCommenter  # Package name: speakline, import: voicecomment
 
 # Auto-detect language from file extension
 commenter = VoiceCommenter()
@@ -106,7 +117,7 @@ print(updated)
 ### Jupyter Notebook
 
 ```python
-from voicecomment import VoiceCommenter
+from voicecomment import VoiceCommenter  # Package name: speakline, import: voicecomment
 
 commenter = VoiceCommenter(language='python')
 
@@ -163,7 +174,7 @@ Main orchestration class that ties everything together.
 ### Custom Transcriber
 
 ```python
-from voicecomment import VoiceCommenter
+from voicecomment import VoiceCommenter  # Package name: speakline, import: voicecomment
 from voicecomment.transcriber import TranscriberBase
 import numpy as np
 
@@ -179,7 +190,7 @@ commenter.record_and_insert('file.py', line_number=10)
 ### Custom Audio Config
 
 ```python
-from voicecomment import VoiceCommenter, AudioConfig
+from voicecomment import VoiceCommenter  # Package name: speakline, import: voicecomment, AudioConfig
 
 config = AudioConfig(
     sample_rate=44100,  # High-quality audio
@@ -201,7 +212,7 @@ Example VS Code extension (snippet):
 ```typescript
 const { spawn } = require('child_process');
 
-const proc = spawn('voicecomment', ['record', filepath, lineNumber.toString()]);
+const proc = spawn('speakline', ['record', filepath, lineNumber.toString()]);
 proc.on('close', (code) => {
   if (code === 0) {
     vscode.window.showInformationMessage('Comment inserted!');
@@ -214,8 +225,8 @@ proc.on('close', (code) => {
 ### Setup
 
 ```bash
-git clone https://github.com/yourusername/voicecomment
-cd voicecomment
+git clone https://github.com/likthvishal/SpeakLine
+cd SpeakLine
 pip install -e ".[dev]"
 ```
 
@@ -250,7 +261,7 @@ mypy voicecomment/
 
 ## Security & Reliability
 
-### v0.2.0-beta (Current)
+### v0.2.0 (Current)
 ✅ **Security Hardened**
 - Path traversal protection (blocks system directories)
 - Atomic file writes (prevents data corruption)
