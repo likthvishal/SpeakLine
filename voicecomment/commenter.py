@@ -293,10 +293,20 @@ class VoiceCommenter:
         if "\x00" in filepath:
             raise VoiceCommenterError("Invalid filepath: contains null bytes")
 
-        # Reject attempts to write to system directories
+        # Reject attempts to write to system directories (cross-platform)
         abs_path = os.path.abspath(filepath)
-        if abs_path.startswith(("/etc", "/sys", "/proc")) or abs_path.startswith(("C:\\Windows", "C:\\Program Files")):
-            raise VoiceCommenterError(f"Cannot modify system files: {filepath}")
+        normalized = abs_path.replace("\\", "/").lower()
+
+        # Block system directories (Unix and Windows)
+        blocked_patterns = [
+            "/etc/", "/sys/", "/proc/", "/root/", "/boot/",
+            "c:/windows/", "c:/program files/", "c:/program files (x86)/",
+            "d:/windows/", "d:/program files/",
+        ]
+
+        for pattern in blocked_patterns:
+            if pattern in normalized:
+                raise VoiceCommenterError(f"Cannot modify system files: {filepath}")
 
     @property
     def language(self) -> Optional[str]:
