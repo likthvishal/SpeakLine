@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/logo.png" alt="SpeakLine Logo" width="300">
+  <img src="website/src/assets/colored-logo.png" alt="SpeakLine Logo" width="300">
 </p>
 
 <h1 align="center">SpeakLine</h1>
