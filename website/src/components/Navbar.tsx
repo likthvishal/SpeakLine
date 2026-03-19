@@ -18,10 +18,10 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <a href="#" className="flex items-center gap-2 group">
-            <div className="p-2 rounded-lg bg-gradient-to-br from-sky-500 to-violet-500 group-hover:scale-110 transition-transform">
+            <div className="p-2 rounded-lg bg-gray-900 group-hover:scale-110 transition-transform">
               <Mic className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xl font-bold text-white">SpeakLine</span>
+            <span className="text-xl font-bold text-gray-900">SpeakLine</span>
           </a>
 
           {/* Desktop Nav */}
@@ -30,7 +30,7 @@ export default function Navbar() {
               <a
                 key={link.href}
                 href={link.href}
-                className="text-slate-400 hover:text-white transition-colors text-sm font-medium"
+                className="text-gray-500 hover:text-gray-900 transition-colors text-sm font-medium"
               >
                 {link.label}
               </a>
@@ -55,7 +55,7 @@ export default function Navbar() {
 
           {/* Mobile Menu Button */}
           <button
-            className="md:hidden p-2 text-slate-400 hover:text-white"
+            className="md:hidden p-2 text-gray-500 hover:text-gray-900"
             onClick={() => setIsOpen(!isOpen)}
           >
             {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -64,19 +64,19 @@ export default function Navbar() {
 
         {/* Mobile Menu */}
         {isOpen && (
-          <div className="md:hidden py-4 border-t border-slate-800">
+          <div className="md:hidden py-4 border-t border-gray-200">
             {navLinks.map((link) => (
               <a
                 key={link.href}
                 href={link.href}
-                className="block py-2 text-slate-400 hover:text-white transition-colors"
+                className="block py-2 text-gray-500 hover:text-gray-900 transition-colors"
                 onClick={() => setIsOpen(false)}
               >
                 {link.label}
               </a>
             ))}
             <div className="flex gap-3 mt-4">
-              <a href="https://github.com" className="btn-secondary text-sm py-2 flex-1 text-center">
+              <a href="https://github.com/likthvishal/SpeakLine" className="btn-secondary text-sm py-2 flex-1 text-center">
                 GitHub
               </a>
               <a href="#installation" className="btn-primary text-sm py-2 flex-1 text-center">

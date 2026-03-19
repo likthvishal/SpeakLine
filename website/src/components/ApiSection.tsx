@@ -12,7 +12,7 @@ export default function ApiSection() {
   ];
 
   const codeExamples = {
-    basic: `from voicecomment import VoiceCommenter
+    basic: `from speakline import VoiceCommenter
 
 # Auto-detect language from file extension
 commenter = VoiceCommenter()
@@ -36,8 +36,8 @@ updated = commenter.insert_comment_to_string(
     "Base case for recursion",
     line_number=3
 )`,
-    custom: `from voicecomment import VoiceCommenter
-from voicecomment.transcriber import TranscriberBase
+    custom: `from speakline import VoiceCommenter
+from speakline.transcriber import TranscriberBase
 import numpy as np
 
 class CustomLLMTranscriber(TranscriberBase):
@@ -57,7 +57,7 @@ commenter = VoiceCommenter(
     transcriber=CustomLLMTranscriber()
 )
 commenter.record_and_insert('file.py', line_number=10)`,
-    jupyter: `from voicecomment import VoiceCommenter
+    jupyter: `from speakline import VoiceCommenter
 
 commenter = VoiceCommenter(language='python')
 
@@ -86,17 +86,14 @@ print(updated)
 
   return (
     <section id="api" className="py-24 relative">
-      {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-violet-950/20 to-transparent" />
-
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
             Powerful
             <span className="gradient-text"> Python API</span>
           </h2>
-          <p className="text-slate-400 text-lg max-w-2xl mx-auto">
+          <p className="text-gray-500 text-lg max-w-2xl mx-auto">
             Full programmatic access. Build integrations, extend functionality, or create custom workflows.
           </p>
         </div>
@@ -105,15 +102,15 @@ print(updated)
         <div className="max-w-4xl mx-auto">
           <div className="glass rounded-2xl overflow-hidden">
             {/* Tabs */}
-            <div className="flex border-b border-slate-800 overflow-x-auto">
+            <div className="flex border-b border-gray-200 overflow-x-auto">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={`px-6 py-3 text-sm font-medium whitespace-nowrap transition-colors ${
                     activeTab === tab.id
-                      ? 'text-white bg-slate-800/50 border-b-2 border-violet-500'
-                      : 'text-slate-400 hover:text-white hover:bg-slate-800/30'
+                      ? 'text-gray-900 bg-gray-50 border-b-2 border-gray-900'
+                      : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
                   }`}
                 >
                   {tab.label}
@@ -128,7 +125,7 @@ print(updated)
                   <code>
                     {codeExamples[activeTab].split('\n').map((line, i) => (
                       <div key={i} className="flex">
-                        <span className="text-slate-600 w-8 text-right mr-4 select-none text-xs">
+                        <span className="text-gray-400 w-8 text-right mr-4 select-none text-xs">
                           {i + 1}
                         </span>
                         <span>
@@ -141,35 +138,35 @@ print(updated)
                               <span className="token-keyword">
                                 {line.split(' ')[0]}
                               </span>
-                              <span className="text-slate-300">
+                              <span className="text-gray-700">
                                 {' ' + line.split(' ').slice(1).join(' ')}
                               </span>
                             </>
                           ) : line.includes('class ') ? (
                             <>
                               <span className="token-keyword">class</span>
-                              <span className="text-slate-300">{line.slice(5)}</span>
+                              <span className="text-gray-700">{line.slice(5)}</span>
                             </>
                           ) : line.includes('def ') ? (
                             <>
-                              <span className="text-slate-300">{line.split('def')[0]}</span>
+                              <span className="text-gray-700">{line.split('def')[0]}</span>
                               <span className="token-keyword">def</span>
                               <span className="token-function">{line.split('def')[1].split('(')[0]}</span>
-                              <span className="text-slate-300">({line.split('(').slice(1).join('(')}</span>
+                              <span className="text-gray-700">({line.split('(').slice(1).join('(')}</span>
                             </>
                           ) : line.includes('return ') ? (
                             <>
-                              <span className="text-slate-300">{line.split('return')[0]}</span>
+                              <span className="text-gray-700">{line.split('return')[0]}</span>
                               <span className="token-keyword">return</span>
-                              <span className="text-slate-300">{line.split('return')[1]}</span>
+                              <span className="text-gray-700">{line.split('return')[1]}</span>
                             </>
                           ) : line.includes('print(') ? (
                             <>
                               <span className="token-function">print</span>
-                              <span className="text-slate-300">{line.slice(5)}</span>
+                              <span className="text-gray-700">{line.slice(5)}</span>
                             </>
                           ) : (
-                            <span className="text-slate-300">{line}</span>
+                            <span className="text-gray-700">{line}</span>
                           )}
                         </span>
                       </div>
@@ -188,8 +185,8 @@ print(updated)
               { label: 'Extensible', desc: 'Abstract base classes for custom backends' },
             ].map((item, i) => (
               <div key={i} className="text-center p-4 glass rounded-xl">
-                <h4 className="text-white font-medium mb-1">{item.label}</h4>
-                <p className="text-slate-500 text-sm">{item.desc}</p>
+                <h4 className="text-gray-900 font-medium mb-1">{item.label}</h4>
+                <p className="text-gray-400 text-sm">{item.desc}</p>
               </div>
             ))}
           </div>

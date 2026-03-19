@@ -1,13 +1,13 @@
 const languages = [
-  { name: 'Python', ext: '.py', prefix: '#', icon: '🐍', color: 'from-yellow-400 to-blue-500' },
-  { name: 'JavaScript', ext: '.js', prefix: '//', icon: '⚡', color: 'from-yellow-400 to-yellow-600' },
-  { name: 'TypeScript', ext: '.ts', prefix: '//', icon: '💙', color: 'from-blue-400 to-blue-600' },
-  { name: 'Go', ext: '.go', prefix: '//', icon: '🐹', color: 'from-cyan-400 to-cyan-600' },
-  { name: 'Rust', ext: '.rs', prefix: '//', icon: '🦀', color: 'from-orange-400 to-red-600' },
-  { name: 'Java', ext: '.java', prefix: '//', icon: '☕', color: 'from-red-400 to-orange-600' },
-  { name: 'C#', ext: '.cs', prefix: '//', icon: '💜', color: 'from-purple-400 to-purple-600' },
-  { name: 'Ruby', ext: '.rb', prefix: '#', icon: '💎', color: 'from-red-400 to-red-600' },
-  { name: 'C/C++', ext: '.cpp', prefix: '//', icon: '⚙️', color: 'from-blue-400 to-indigo-600' },
+  { name: 'Python', ext: '.py', prefix: '#', icon: '🐍' },
+  { name: 'JavaScript', ext: '.js', prefix: '//', icon: '⚡' },
+  { name: 'TypeScript', ext: '.ts', prefix: '//', icon: '💙' },
+  { name: 'Go', ext: '.go', prefix: '//', icon: '🐹' },
+  { name: 'Rust', ext: '.rs', prefix: '//', icon: '🦀' },
+  { name: 'Java', ext: '.java', prefix: '//', icon: '☕' },
+  { name: 'C#', ext: '.cs', prefix: '//', icon: '💜' },
+  { name: 'Ruby', ext: '.rb', prefix: '#', icon: '💎' },
+  { name: 'C/C++', ext: '.cpp', prefix: '//', icon: '⚙️' },
 ];
 
 export default function Languages() {
@@ -16,11 +16,11 @@ export default function Languages() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
             Works With Your
             <span className="gradient-text"> Favorite Languages</span>
           </h2>
-          <p className="text-slate-400 text-lg max-w-2xl mx-auto">
+          <p className="text-gray-500 text-lg max-w-2xl mx-auto">
             Auto-detect language from file extension. Perfect indentation and comment style every time.
           </p>
         </div>
@@ -34,13 +34,13 @@ export default function Languages() {
             >
               <div className="feature-card text-center py-6">
                 <div className="text-4xl mb-3">{lang.icon}</div>
-                <h3 className="text-white font-medium mb-1">{lang.name}</h3>
-                <p className="text-slate-500 text-sm font-mono">{lang.ext}</p>
+                <h3 className="text-gray-900 font-medium mb-1">{lang.name}</h3>
+                <p className="text-gray-400 text-sm font-mono">{lang.ext}</p>
 
                 {/* Hover Detail */}
-                <div className="absolute inset-0 rounded-xl bg-slate-900/95 backdrop-blur flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                  <p className="text-slate-400 text-sm mb-2">Comment prefix:</p>
-                  <code className="text-xl font-mono text-emerald-400">{lang.prefix}</code>
+                <div className="absolute inset-0 rounded-xl bg-white/95 border border-gray-200 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <p className="text-gray-500 text-sm mb-2">Comment prefix:</p>
+                  <code className="text-xl font-mono text-gray-900 font-bold">{lang.prefix}</code>
                 </div>
               </div>
             </div>
@@ -49,9 +49,9 @@ export default function Languages() {
 
         {/* Additional Info */}
         <div className="mt-12 text-center">
-          <p className="text-slate-500 text-sm">
+          <p className="text-gray-400 text-sm">
             Don't see your language?{' '}
-            <a href="#" className="text-sky-400 hover:text-sky-300 underline">
+            <a href="#" className="text-gray-900 hover:text-gray-700 underline">
               Use GenericParser
             </a>
             {' '}with any comment prefix.
