@@ -21,6 +21,11 @@ from .parser import (
     get_language_from_extension,
     ParserError,
 )
+from .formatter import (
+    FormatterBase,
+    RuleBasedFormatter,
+    get_formatter,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +60,7 @@ class VoiceCommenter:
         transcriber: Optional[TranscriberBase] = None,
         recorder: Optional[RecorderBase] = None,
         audio_config: Optional[AudioConfig] = None,
+        formatter: Optional[FormatterBase] = None,
     ) -> None:
         """Initialize the VoiceCommenter.
 
@@ -64,11 +70,14 @@ class VoiceCommenter:
             transcriber: Transcription backend. Defaults to WhisperTranscriber.
             recorder: Audio recorder. Defaults to LocalAudioRecorder.
             audio_config: Audio configuration for the recorder.
+            formatter: Comment formatter for cleaning raw transcriptions.
+                Defaults to RuleBasedFormatter. Use 'llm' for LLM-powered cleanup.
         """
         self._language = language
         self._audio_config = audio_config or AudioConfig()
         self._recorder = recorder or LocalAudioRecorder(config=self._audio_config)
         self._transcriber = transcriber or self._create_default_transcriber()
+        self._formatter = formatter or RuleBasedFormatter()
 
     def _create_default_transcriber(self) -> TranscriberBase:
         """Create the default transcriber with fallback logic."""
@@ -138,6 +147,15 @@ class VoiceCommenter:
             logger.warning("Transcription resulted in empty text")
             raise VoiceCommenterError("Transcription resulted in empty text")
 
+        # Format the raw transcription into a clean comment
+        logger.info("Formatting transcription...")
+        try:
+            # Read surrounding code for context-aware formatting
+            context = self._get_code_context(filepath, line_number)
+            comment = self._formatter.format(comment, context=context)
+        except Exception as e:
+            logger.warning(f"Formatting failed, using raw transcription: {e}")
+
         # Insert comment into file
         self.insert_comment_to_file(filepath, comment, line_number)
 
@@ -174,6 +192,12 @@ class VoiceCommenter:
             )
         except TranscriberError as e:
             raise VoiceCommenterError(f"Transcription failed: {e}")
+
+        # Format the raw transcription
+        try:
+            text = self._formatter.format(text)
+        except Exception as e:
+            logger.warning(f"Formatting failed, using raw transcription: {e}")
 
         return text
 
@@ -307,6 +331,22 @@ class VoiceCommenter:
         for pattern in blocked_patterns:
             if pattern in normalized:
                 raise VoiceCommenterError(f"Cannot modify system files: {filepath}")
+
+    def _get_code_context(self, filepath: str, line_number: int, window: int = 5) -> str:
+        """Extract surrounding code lines for context-aware formatting."""
+        try:
+            with open(filepath, "r", encoding="utf-8") as f:
+                lines = f.readlines()
+            start = max(0, line_number - window - 1)
+            end = min(len(lines), line_number + window)
+            return "".join(lines[start:end])
+        except Exception:
+            return ""
+
+    @property
+    def formatter(self) -> FormatterBase:
+        """Return the comment formatter."""
+        return self._formatter
 
     @property
     def language(self) -> Optional[str]:

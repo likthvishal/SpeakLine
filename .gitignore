@@ -22,6 +22,11 @@ node_modules/
 .DS_Store
 Thumbs.db
 
+# VS Code Extension build
+vscode-extension/out/
+vscode-extension/node_modules/
+*.vsix
+
 # Claude Code
 .claude/
 .config/

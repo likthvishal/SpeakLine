@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "speakline"
-version = "0.2.0"
+version = "0.3.0"
 description = "Record voice and insert as inline code comments across any language and IDE"
 readme = "README.md"
 license = {text = "MIT"}
@@ -33,6 +33,8 @@ dependencies = [
     "openai>=1.0.0",
     "typer>=0.9.0",
     "rich>=13.0.0",
+    "pygls>=1.3.0",
+    "lsprotocol>=2023.0.1",
 ]
 
 [project.optional-dependencies]
@@ -46,6 +48,7 @@ dev = [
 
 [project.scripts]
 speakline = "speakline.cli:app"
+speakline-lsp = "speakline.lsp.server:main"
 
 [project.urls]
 Homepage = "https://github.com/likthvishal/SpeakLine"

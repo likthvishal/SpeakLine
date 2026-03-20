@@ -16,7 +16,7 @@ Example:
     >>> updated = commenter.insert_comment_to_string(code, "My comment", 2)
 """
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 from .commenter import VoiceCommenter, VoiceCommenterError
 from .recorder import (
@@ -37,6 +37,14 @@ from .transcriber import (
     ModelNotFoundError,
     APIError,
     get_transcriber,
+)
+from .formatter import (
+    FormatterBase,
+    RuleBasedFormatter,
+    LLMFormatter,
+    PassthroughFormatter,
+    FormatterError,
+    get_formatter,
 )
 from .parser import (
     ParserBase,
@@ -79,6 +87,13 @@ __all__ = [
     "ModelNotFoundError",
     "APIError",
     "get_transcriber",
+    # Formatter
+    "FormatterBase",
+    "RuleBasedFormatter",
+    "LLMFormatter",
+    "PassthroughFormatter",
+    "FormatterError",
+    "get_formatter",
     # Parser
     "ParserBase",
     "GenericParser",

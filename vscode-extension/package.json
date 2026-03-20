@@ -1,0 +1,121 @@
+{
+  "name": "speakline",
+  "displayName": "SpeakLine",
+  "description": "Record voice and insert as inline code comments — speak at your cursor, comment appears with proper syntax",
+  "version": "0.2.0",
+  "publisher": "speakline",
+  "license": "MIT",
+  "icon": "icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/likthvishal/SpeakLine"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other",
+    "Programming Languages"
+  ],
+  "keywords": [
+    "voice",
+    "comments",
+    "transcription",
+    "whisper",
+    "speech-to-code"
+  ],
+  "activationEvents": [
+    "onLanguage:python",
+    "onLanguage:javascript",
+    "onLanguage:typescript",
+    "onLanguage:go",
+    "onLanguage:rust",
+    "onLanguage:java",
+    "onLanguage:csharp",
+    "onLanguage:ruby",
+    "onLanguage:c",
+    "onLanguage:cpp"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "speakline.recordAtCursor",
+        "title": "SpeakLine: Record & Insert Comment at Cursor"
+      },
+      {
+        "command": "speakline.recordAtCursorPreview",
+        "title": "SpeakLine: Record & Preview Comment at Cursor"
+      },
+      {
+        "command": "speakline.transcribeOnly",
+        "title": "SpeakLine: Transcribe Only (no insert)"
+      },
+      {
+        "command": "speakline.insertComment",
+        "title": "SpeakLine: Insert Comment at Cursor (type text)"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "speakline.recordAtCursor",
+        "key": "ctrl+shift+v",
+        "mac": "cmd+shift+v",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "speakline.recordAtCursorPreview",
+        "key": "ctrl+shift+alt+v",
+        "mac": "cmd+shift+alt+v",
+        "when": "editorTextFocus"
+      }
+    ],
+    "configuration": {
+      "title": "SpeakLine",
+      "properties": {
+        "speakline.pythonPath": {
+          "type": "string",
+          "default": "python",
+          "description": "Path to the Python interpreter with speakline installed"
+        },
+        "speakline.backend": {
+          "type": "string",
+          "default": "whisper",
+          "enum": ["whisper", "openai", "mock"],
+          "description": "Transcription backend"
+        },
+        "speakline.whisperModelSize": {
+          "type": "string",
+          "default": "base",
+          "enum": ["tiny", "base", "small", "medium", "large"],
+          "description": "Whisper model size (only for whisper backend)"
+        },
+        "speakline.recordingDuration": {
+          "type": ["number", "null"],
+          "default": null,
+          "description": "Fixed recording duration in seconds. Null for silence detection."
+        },
+        "speakline.lspPort": {
+          "type": ["number", "null"],
+          "default": null,
+          "description": "TCP port for LSP server. Null for stdio (default)."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.3.0",
+    "@vscode/vsce": "^2.22.0"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  }
+}

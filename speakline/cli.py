@@ -11,6 +11,7 @@ from rich.logging import RichHandler
 from .commenter import VoiceCommenter, VoiceCommenterError
 from .recorder import AudioConfig
 from .transcriber import WhisperTranscriber, OpenAITranscriber, MockTranscriber
+from .formatter import get_formatter
 
 # Set up rich console
 console = Console()
@@ -69,6 +70,12 @@ def record(
         envvar="OPENAI_API_KEY",
         hidden=True,
     ),
+    format_mode: str = typer.Option(
+        "rules",
+        "--format",
+        "-f",
+        help="Comment formatting: 'llm' (OpenAI cleanup), 'rules' (local), 'none' (raw)",
+    ),
     preview: bool = typer.Option(
         False,
         "--preview",
@@ -88,16 +95,21 @@ def record(
         speakline record main.js 15 --duration 5
         speakline record code.go 10 --backend openai
         speakline record myfile.py 42 --preview
+        speakline record myfile.py 42 --format llm
     """
     setup_logging(verbose)
 
     # Create transcriber
     transcriber = _create_transcriber(backend, model_size, api_key)
 
+    # Create formatter
+    formatter = get_formatter(format_mode, api_key=api_key)
+
     # Create commenter
     commenter = VoiceCommenter(
         language=language,
         transcriber=transcriber,
+        formatter=formatter,
     )
 
     console.print(f"[bold blue]Recording for {filepath}:{line_number}[/bold blue]")
@@ -177,6 +189,12 @@ def transcribe(
         envvar="OPENAI_API_KEY",
         hidden=True,
     ),
+    format_mode: str = typer.Option(
+        "rules",
+        "--format",
+        "-f",
+        help="Comment formatting: 'llm' (OpenAI cleanup), 'rules' (local), 'none' (raw)",
+    ),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose output"),
 ) -> None:
     """Record and transcribe voice without modifying any files.
@@ -188,14 +206,18 @@ def transcribe(
         speakline transcribe
         speakline transcribe --duration 10
         speakline transcribe --backend openai
+        speakline transcribe --format llm
     """
     setup_logging(verbose)
 
     # Create transcriber
     transcriber = _create_transcriber(backend, model_size, api_key)
 
+    # Create formatter
+    formatter = get_formatter(format_mode, api_key=api_key)
+
     # Create commenter
-    commenter = VoiceCommenter(transcriber=transcriber)
+    commenter = VoiceCommenter(transcriber=transcriber, formatter=formatter)
 
     if duration:
         console.print(f"[dim]Recording for {duration} seconds...[/dim]")

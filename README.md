@@ -287,32 +287,6 @@ Found a vulnerability? Please email **contact@speakline.org** instead of opening
 
 ---
 
-## Roadmap
-
-### Phase 1: Beta Ready ✅
-- [x] Security audit & fixes
-- [x] Comprehensive test suite
-- [x] Preview mode (`--preview`)
-- [x] v0.2.0-beta release
-
-### Phase 2: IDE Integrations (Q2 2026)
-- [ ] VS Code Extension
-- [ ] Vim/Neovim Plugin
-- [ ] GitHub Actions Integration
-
-### Phase 3: Growth & Scale (Q3 2026)
-- [ ] YouTube tutorials (3-5 videos)
-- [ ] Blog posts (5-10 articles)
-- [ ] Product Hunt launch
-- [ ] 2,500+ GitHub stars
-
-### Future (Post v1.0)
-- [ ] Watch mode for automated comment markers
-- [ ] Voice activity detection (VAD)
-- [ ] Conversation-aware transcription (context from file)
-- [ ] Custom prompt engineering for comment style
-- [ ] SpeakLine Cloud (hosted API, paid tier)
-
 ## Contributing
 
 Contributions welcome! Please open an issue or pull request. Please reachout at contact@speakline.org for more information.
