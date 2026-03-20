@@ -2,7 +2,7 @@
 
 import pytest
 
-from voicecomment.parser import (
+from speakline.parser import (
     ParserBase,
     GenericParser,
     PythonParser,

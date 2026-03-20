@@ -1,4 +1,4 @@
-"""Command-line interface for VoiceComment."""
+"""Command-line interface for SpeakLine."""
 
 from typing import Optional
 import logging
@@ -17,7 +17,7 @@ console = Console()
 
 # Create Typer app
 app = typer.Typer(
-    name="voicecomment",
+    name="speakline",
     help="Record voice and insert as inline code comments.",
     add_completion=False,
 )
@@ -84,10 +84,10 @@ def record(
     line number in the source file.
 
     Examples:
-        voicecomment record myfile.py 42
-        voicecomment record main.js 15 --duration 5
-        voicecomment record code.go 10 --backend openai
-        voicecomment record myfile.py 42 --preview
+        speakline record myfile.py 42
+        speakline record main.js 15 --duration 5
+        speakline record code.go 10 --backend openai
+        speakline record myfile.py 42 --preview
     """
     setup_logging(verbose)
 
@@ -185,9 +185,9 @@ def transcribe(
     result to stdout.
 
     Examples:
-        voicecomment transcribe
-        voicecomment transcribe --duration 10
-        voicecomment transcribe --backend openai
+        speakline transcribe
+        speakline transcribe --duration 10
+        speakline transcribe --backend openai
     """
     setup_logging(verbose)
 
@@ -229,8 +229,8 @@ def insert(
     Useful for testing or scripted usage.
 
     Examples:
-        voicecomment insert myfile.py 42 "This is my comment"
-        voicecomment insert main.js 15 "TODO: refactor this"
+        speakline insert myfile.py 42 "This is my comment"
+        speakline insert main.js 15 "TODO: refactor this"
     """
     setup_logging(verbose)
 
@@ -249,10 +249,10 @@ def insert(
 
 @app.command()
 def version() -> None:
-    """Show the version of voicecomment."""
+    """Show the version of speakline."""
     from . import __version__
 
-    console.print(f"voicecomment {__version__}")
+    console.print(f"speakline {__version__}")
 
 
 def _create_transcriber(

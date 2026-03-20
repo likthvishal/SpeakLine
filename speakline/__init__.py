@@ -1,10 +1,10 @@
-"""VoiceComment - Record voice and insert as inline code comments.
+"""SpeakLine - Record voice and insert as inline code comments.
 
 This package provides tools for recording voice input, transcribing it to text,
 and inserting the transcribed text as comments in source code files.
 
 Example:
-    >>> from voicecomment import VoiceCommenter
+    >>> from speakline import VoiceCommenter
     >>> commenter = VoiceCommenter()
     >>> commenter.record_and_insert('myfile.py', line_number=42)
 
@@ -16,7 +16,7 @@ Example:
     >>> updated = commenter.insert_comment_to_string(code, "My comment", 2)
 """
 
-__version__ = "0.2.0-beta"
+__version__ = "0.2.0"
 
 from .commenter import VoiceCommenter, VoiceCommenterError
 from .recorder import (

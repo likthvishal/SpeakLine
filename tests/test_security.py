@@ -2,7 +2,7 @@
 import pytest
 import tempfile
 import os
-from voicecomment import VoiceCommenter, VoiceCommenterError
+from speakline import VoiceCommenter, VoiceCommenterError
 
 class TestSecurityVulnerabilities:
     """Test fixes for security vulnerabilities."""

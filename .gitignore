@@ -25,3 +25,5 @@ Thumbs.db
 # Claude Code
 .claude/
 .config/
+
+.vercel

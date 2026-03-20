@@ -41,14 +41,14 @@ def test_api_key_not_logged()
 Users should be able to see what will be inserted before modifying their file.
 
 **Acceptance Criteria:**
-- [ ] `voicecomment record file.py 42 --preview` shows the result without writing
-- [ ] `voicecomment insert file.py 42 "comment" --dry-run` shows diff
+- [ ] `speakline record file.py 42 --preview` shows the result without writing
+- [ ] `speakline insert file.py 42 "comment" --dry-run` shows diff
 - [ ] Works with all backends (whisper, openai, mock)
 - [ ] Documentation updated with examples
 
 **Implementation:**
 ```bash
-voicecomment record myfile.py 42 --preview
+speakline record myfile.py 42 --preview
 # Output:
 # File: myfile.py
 # Target line 42:

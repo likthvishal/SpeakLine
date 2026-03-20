@@ -3,16 +3,16 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "voicecomment"
-version = "0.2.0-beta"
+name = "speakline"
+version = "0.2.0"
 description = "Record voice and insert as inline code comments across any language and IDE"
 readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.9"
 authors = [
-    {name = "VoiceComment Team"}
+    {name = "Likhith Vishal", email = "contact@speakline.org"}
 ]
-keywords = ["voice", "comments", "code", "transcription", "whisper", "developer-tools"]
+keywords = ["voice", "comments", "code", "transcription", "whisper", "developer-tools", "speakline"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
@@ -45,16 +45,18 @@ dev = [
 ]
 
 [project.scripts]
-voicecomment = "voicecomment.cli:app"
+speakline = "speakline.cli:app"
 
 [project.urls]
-Homepage = "https://github.com/yourusername/voicecomment"
-Repository = "https://github.com/yourusername/voicecomment"
-Issues = "https://github.com/yourusername/voicecomment/issues"
+Homepage = "https://github.com/likthvishal/SpeakLine"
+Repository = "https://github.com/likthvishal/SpeakLine"
+Issues = "https://github.com/likthvishal/SpeakLine/issues"
+Documentation = "https://github.com/likthvishal/SpeakLine/blob/master/README.md"
+Changelog = "https://github.com/likthvishal/SpeakLine/releases"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["voicecomment*"]
+include = ["speakline*"]
 
 [tool.black]
 line-length = 100

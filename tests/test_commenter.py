@@ -5,9 +5,9 @@ import os
 
 import pytest
 
-from voicecomment.commenter import VoiceCommenter, VoiceCommenterError
-from voicecomment.recorder import MockRecorder
-from voicecomment.transcriber import MockTranscriber
+from speakline.commenter import VoiceCommenter, VoiceCommenterError
+from speakline.recorder import MockRecorder
+from speakline.transcriber import MockTranscriber
 
 
 class TestVoiceCommenter:

@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from voicecomment.transcriber import (
+from speakline.transcriber import (
     TranscriberBase,
     MockTranscriber,
     get_transcriber,

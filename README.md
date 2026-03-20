@@ -87,7 +87,7 @@ speakline insert myfile.py 42 "This is my comment"
 ### Python API
 
 ```python
-from voicecomment import VoiceCommenter  # Package name: speakline, import: voicecomment
+from speakline import VoiceCommenter
 
 # Auto-detect language from file extension
 commenter = VoiceCommenter()
@@ -117,7 +117,7 @@ print(updated)
 ### Jupyter Notebook
 
 ```python
-from voicecomment import VoiceCommenter  # Package name: speakline, import: voicecomment
+from speakline import VoiceCommenter
 
 commenter = VoiceCommenter(language='python')
 
@@ -152,11 +152,11 @@ Pluggable backends:
 
 ```python
 # Use local Whisper
-from voicecomment.transcriber import WhisperTranscriber
+from speakline.transcriber import WhisperTranscriber
 transcriber = WhisperTranscriber(model_size="base")
 
 # Or OpenAI API
-from voicecomment.transcriber import OpenAITranscriber
+from speakline.transcriber import OpenAITranscriber
 transcriber = OpenAITranscriber(api_key="sk-...")
 ```
 
@@ -174,8 +174,8 @@ Main orchestration class that ties everything together.
 ### Custom Transcriber
 
 ```python
-from voicecomment import VoiceCommenter  # Package name: speakline, import: voicecomment
-from voicecomment.transcriber import TranscriberBase
+from speakline import VoiceCommenter
+from speakline.transcriber import TranscriberBase
 import numpy as np
 
 class CustomLLMTranscriber(TranscriberBase):
@@ -190,7 +190,7 @@ commenter.record_and_insert('file.py', line_number=10)
 ### Custom Audio Config
 
 ```python
-from voicecomment import VoiceCommenter  # Package name: speakline, import: voicecomment, AudioConfig
+from speakline import VoiceCommenter, AudioConfig
 
 config = AudioConfig(
     sample_rate=44100,  # High-quality audio
@@ -242,7 +242,7 @@ pytest --cov  # With coverage
 ```bash
 black .
 ruff check .
-mypy voicecomment/
+mypy speakline/
 ```
 
 ## Supported Languages

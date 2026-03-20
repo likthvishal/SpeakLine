@@ -1,1 +1,1 @@
-"""Tests for the voicecomment package."""
+"""Tests for the speakline package."""

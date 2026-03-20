@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from voicecomment.recorder import (
+from speakline.recorder import (
     AudioConfig,
     SilenceConfig,
     MockRecorder,
