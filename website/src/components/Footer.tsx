@@ -1,4 +1,4 @@
-import { Mic, Github, Twitter, Heart } from 'lucide-react';
+import { Github, Heart } from 'lucide-react';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -20,7 +20,6 @@ export default function Footer() {
       { label: 'Contributing', href: 'https://github.com/likthvishal/SpeakLine/blob/master/README.md#contributing' },
       { label: 'Issues', href: 'https://github.com/likthvishal/SpeakLine/issues' },
       { label: 'Discussions', href: 'https://github.com/likthvishal/SpeakLine/discussions' },
-      { label: 'Twitter', href: 'https://twitter.com/speaklinedev' },
     ],
   };
 
@@ -31,9 +30,7 @@ export default function Footer() {
           {/* Brand */}
           <div className="md:col-span-1">
             <a href="#" className="flex items-center gap-2 mb-4">
-              <div className="p-2 rounded-lg bg-gray-900">
-                <Mic className="w-5 h-5 text-white" />
-              </div>
+              <img src="/logo.png" alt="SpeakLine" className="h-9 w-9" />
               <span className="text-xl font-bold text-gray-900">SpeakLine</span>
             </a>
             <p className="text-gray-400 text-sm mb-4">
@@ -45,12 +42,6 @@ export default function Footer() {
                 className="p-2 rounded-lg bg-gray-100 text-gray-500 hover:text-gray-900 hover:bg-gray-200 transition-colors"
               >
                 <Github className="w-5 h-5" />
-              </a>
-              <a
-                href="#"
-                className="p-2 rounded-lg bg-gray-100 text-gray-500 hover:text-gray-900 hover:bg-gray-200 transition-colors"
-              >
-                <Twitter className="w-5 h-5" />
               </a>
             </div>
           </div>

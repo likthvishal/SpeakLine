@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Menu, X, Mic, Github } from 'lucide-react';
+import { Menu, X, Github } from 'lucide-react';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -18,9 +18,7 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <a href="#" className="flex items-center gap-2 group">
-            <div className="p-2 rounded-lg bg-gray-900 group-hover:scale-110 transition-transform">
-              <Mic className="w-5 h-5 text-white" />
-            </div>
+            <img src="/logo.png" alt="SpeakLine" className="h-9 w-9 group-hover:scale-110 transition-transform" />
             <span className="text-xl font-bold text-gray-900">SpeakLine</span>
           </a>
 
