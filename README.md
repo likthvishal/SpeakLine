@@ -2,8 +2,6 @@
   <img src="https://raw.githubusercontent.com/likthvishal/SpeakLine/master/website/src/assets/colored-logo.png" alt="SpeakLine Logo" width="300">
 </p>
 
-<h1 align="center">SpeakLine</h1>
-
 <p align="center">
   <strong>Record voice and insert as inline code comments across any language and IDE.</strong>
 </p>
@@ -24,9 +22,12 @@
 
 - **Voice Recording**: Local microphone input with silence detection
 - **Transcription**: Support for Whisper (local) and OpenAI API
+- **Context-Aware Formatting**: LLM post-processing cleans raw speech into concise, idiomatic comments
 - **Smart Comment Insertion**: Language-aware parser with proper indentation
-- **Multi-Language Support**: Python, JavaScript, TypeScript, Go, Rust, Java, C#, Ruby
-- **Pluggable Backends**: Swap recorders, transcribers, and parsers easily
+- **VS Code Extension**: One-keybind workflow — press shortcut, speak, comment appears at cursor
+- **LSP Server**: Bidirectional IDE communication via Language Server Protocol
+- **Multi-Language Support**: Python, JavaScript, TypeScript, Go, Rust, Java, C#, Ruby, C/C++
+- **Pluggable Backends**: Swap recorders, transcribers, formatters, and parsers easily
 - **Flexible API**: CLI, Python package, and programmatic access
 - **Preview Mode**: Test comments before modifying files with `--preview` flag
 - **Production-Ready**: Security-hardened, atomic writes, comprehensive error handling
@@ -79,6 +80,12 @@ speakline record myfile.py 42 --duration 5
 
 # Transcribe without modifying file
 speakline transcribe
+
+# LLM-powered comment cleanup (requires OPENAI_API_KEY)
+speakline record myfile.py 42 --format llm
+
+# Local rule-based cleanup (default, no API needed)
+speakline record myfile.py 42 --format rules
 
 # Insert comment directly (no recording)
 speakline insert myfile.py 42 "This is my comment"
@@ -166,7 +173,25 @@ Language-specific parsers:
 - `JavaScriptParser`: Uses `//` prefix
 - `GenericParser`: Configurable fallback for unsupported languages
 
-#### 4. **VoiceCommenter** (`commenter.py`)
+#### 4. **Comment Formatter** (`formatter.py`)
+Post-processing pipeline that cleans raw transcription into idiomatic comments:
+- `RuleBasedFormatter`: Local filler-word removal, no API needed (default)
+- `LLMFormatter`: OpenAI GPT-3.5 cleanup with surrounding code context
+- `PassthroughFormatter`: Raw transcription, no changes
+
+```
+Input:  "uh this function basically like takes the input and returns the factorial recursively"
+Rules:  "Takes the input, returns the factorial recursively"
+LLM:    "Recursively computes factorial of n"
+```
+
+#### 5. **LSP Server** (`lsp/server.py`)
+Language Server Protocol sidecar for IDE extensions:
+- Bidirectional communication via stdio or TCP
+- Auto-detects cursor position, active file, and indent context
+- Thread-safe recording lock
+
+#### 6. **VoiceCommenter** (`commenter.py`)
 Main orchestration class that ties everything together.
 
 ## Advanced Usage
@@ -200,25 +225,35 @@ config = AudioConfig(
 commenter = VoiceCommenter(audio_config=config)
 ```
 
-### Integration with IDE Extensions
+### VS Code Extension
 
-The Python package can be called from:
-- **VS Code Extension**: Via subprocess or Node.js child process
-- **Vim Plugin**: Via Python 3 interface
-- **Neovim**: Via Python plugin host
-- **Emacs**: Via `python-shell`
+SpeakLine ships with a VS Code extension that uses an LSP sidecar — no subprocess spawning, no manual line numbers.
 
-Example VS Code extension (snippet):
-```typescript
-const { spawn } = require('child_process');
-
-const proc = spawn('speakline', ['record', filepath, lineNumber.toString()]);
-proc.on('close', (code) => {
-  if (code === 0) {
-    vscode.window.showInformationMessage('Comment inserted!');
-  }
-});
+**Setup:**
+```bash
+pip install speakline
+cd vscode-extension && npm install && npm run compile
+# Open in VS Code, press F5 to launch Extension Development Host
 ```
+
+**Keybindings:**
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl+Shift+V` (`Cmd+Shift+V` on Mac) | Record & insert comment at cursor |
+| `Ctrl+Shift+Alt+V` | Record & preview comment (Insert/Discard) |
+
+**How it works:**
+1. Press the shortcut — cursor position is auto-detected
+2. Speak your comment
+3. Transcription is formatted and inserted with proper syntax
+
+The extension communicates with SpeakLine through a proper Language Server Protocol connection, giving it access to the active file, cursor position, and indent context.
+
+**Configuration** (VS Code Settings):
+- `speakline.pythonPath` — Python interpreter path (default: `python`)
+- `speakline.backend` — Transcription backend: `whisper`, `openai`, `mock`
+- `speakline.whisperModelSize` — Whisper model: `tiny`, `base`, `small`, `medium`, `large`
+- `speakline.recordingDuration` — Fixed duration in seconds (null for silence detection)
 
 ## Development
 
@@ -261,7 +296,7 @@ mypy speakline/
 
 ## Security & Reliability
 
-### v0.2.0 (Current)
+### v0.3.0 (Current)
 ✅ **Security Hardened**
 - Path traversal protection (blocks system directories)
 - Atomic file writes (prevents data corruption)
@@ -273,7 +308,7 @@ mypy speakline/
 ✅ **Reliability Metrics**
 - 95%+ success rate for comment insertion
 - <0.1% data loss (atomic writes prevent corruption)
-- Zero critical security vulnerabilities (v0.2.0)
+- Zero critical security vulnerabilities
 - 90%+ test coverage on security paths
 - Encoding detection (UTF-8 + latin-1 fallback)
 
