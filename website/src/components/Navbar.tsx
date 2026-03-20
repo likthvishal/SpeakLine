@@ -19,7 +19,7 @@ export default function Navbar() {
           {/* Logo */}
           <a href="#" className="flex items-center gap-2 group">
             <img src="/logo.png" alt="SpeakLine" className="h-9 w-9 group-hover:scale-110 transition-transform" />
-            <span className="text-xl font-bold text-gray-900">SpeakLine</span>
+            <span className="text-xl font-bold"><span className="text-orange-500">Speak</span><span className="text-sky-500">line</span></span>
           </a>
 
           {/* Desktop Nav */}

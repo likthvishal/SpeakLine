@@ -31,7 +31,7 @@ export default function Footer() {
           <div className="md:col-span-1">
             <a href="#" className="flex items-center gap-2 mb-4">
               <img src="/logo.png" alt="SpeakLine" className="h-9 w-9" />
-              <span className="text-xl font-bold text-gray-900">SpeakLine</span>
+              <span className="text-xl font-bold"><span className="text-orange-500">Speak</span><span className="text-sky-500">line</span></span>
             </a>
             <p className="text-gray-400 text-sm mb-4">
               Turn your spoken thoughts into well-formatted code comments.
