@@ -1,14 +1,14 @@
 import * as vscode from "vscode";
-import * as path from "path";
-import {
-  LanguageClient,
-  LanguageClientOptions,
-  ServerOptions,
-  TransportKind,
-} from "vscode-languageclient/node";
+import * as http from "http";
+import * as cp from "child_process";
 
-let client: LanguageClient | undefined;
 let statusBarItem: vscode.StatusBarItem;
+let daemonProcess: cp.ChildProcess | undefined;
+
+const DAEMON_PORT = 7777;
+const DAEMON_HOST = "127.0.0.1";
+const DAEMON_STARTUP_TIMEOUT = 10000; // 10 seconds
+const DAEMON_HEALTH_CHECK_INTERVAL = 500; // 500ms
 
 export async function activate(context: vscode.ExtensionContext) {
   vscode.window.showInformationMessage("✓ SpeakLine extension activated");
@@ -44,42 +44,96 @@ export async function activate(context: vscode.ExtensionContext) {
   statusBarItem.show();
   context.subscriptions.push(statusBarItem);
 
-  // Start LSP server and wait for it
-  await startLanguageServer(context);
+  // Start daemon and wait for it
+  await startDaemon(context);
 }
 
-function startLanguageServer(context: vscode.ExtensionContext): Promise<void> {
-  vscode.window.showInformationMessage("Launching SpeakLine LSP server...");
+async function startDaemon(context: vscode.ExtensionContext): Promise<void> {
+  vscode.window.showInformationMessage("Starting SpeakLine daemon...");
 
-  const serverOptions: ServerOptions = {
-    command: "python",
-    args: ["-m", "speakline.lsp"],
-  };
+  try {
+    // Get python path from config
+    const config = vscode.workspace.getConfiguration("speakline");
+    const pythonPath = config.get<string>("pythonPath", "python");
 
-  const clientOptions: LanguageClientOptions = {
-    documentSelector: [{ scheme: "file" }],
-  };
+    // Spawn daemon process
+    daemonProcess = cp.spawn(pythonPath, ["-m", "speakline.daemon", "--port", String(DAEMON_PORT)], {
+      detached: true,
+      stdio: "ignore",
+    });
 
-  client = new LanguageClient(
-    "speakline",
-    "SpeakLine Language Server",
-    serverOptions,
-    clientOptions
-  );
+    daemonProcess.unref();
 
-  context.subscriptions.push(client);
-
-  return new Promise((resolve, reject) => {
-    client!.start().then(
-      () => {
-        vscode.window.showInformationMessage("✓ SpeakLine LSP initialized");
-        resolve();
-      },
-      (err) => {
-        vscode.window.showErrorMessage(`✗ LSP init failed: ${err.message}`);
-        reject(err);
-      }
+    // Wait for daemon to be ready
+    await waitForDaemonReady();
+    vscode.window.showInformationMessage("✓ SpeakLine daemon ready");
+  } catch (err: any) {
+    vscode.window.showErrorMessage(
+      `✗ Failed to start SpeakLine daemon: ${err.message}`
     );
+    throw err;
+  }
+}
+
+async function waitForDaemonReady(): Promise<void> {
+  const startTime = Date.now();
+
+  while (Date.now() - startTime < DAEMON_STARTUP_TIMEOUT) {
+    try {
+      await sendCommand("/health", {});
+      return; // Success
+    } catch {
+      // Not ready yet, wait and retry
+      await new Promise((resolve) =>
+        setTimeout(resolve, DAEMON_HEALTH_CHECK_INTERVAL)
+      );
+    }
+  }
+
+  throw new Error(
+    `Daemon health check timeout after ${DAEMON_STARTUP_TIMEOUT}ms`
+  );
+}
+
+async function sendCommand(endpoint: string, body: any): Promise<any> {
+  return new Promise((resolve, reject) => {
+    const options = {
+      hostname: DAEMON_HOST,
+      port: DAEMON_PORT,
+      path: endpoint,
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    };
+
+    const req = http.request(options, (res) => {
+      let data = "";
+
+      res.on("data", (chunk) => {
+        data += chunk;
+      });
+
+      res.on("end", () => {
+        try {
+          const parsed = JSON.parse(data);
+          if (parsed.ok) {
+            resolve(parsed);
+          } else {
+            reject(new Error(parsed.error || "Unknown daemon error"));
+          }
+        } catch (err) {
+          reject(new Error(`Failed to parse daemon response: ${data}`));
+        }
+      });
+    });
+
+    req.on("error", (err) => {
+      reject(err);
+    });
+
+    req.write(JSON.stringify(body));
+    req.end();
   });
 }
 
@@ -87,13 +141,6 @@ async function recordAtCursor(preview: boolean) {
   const editor = vscode.window.activeTextEditor;
   if (!editor) {
     vscode.window.showWarningMessage("SpeakLine: No active editor");
-    return;
-  }
-
-  if (!client) {
-    vscode.window.showErrorMessage(
-      "SpeakLine: LSP server failed to start. Ensure 'speakline' is installed: pip install speakline"
-    );
     return;
   }
 
@@ -109,44 +156,36 @@ async function recordAtCursor(preview: boolean) {
     "statusBarItem.warningBackground"
   );
 
-  const command = preview
-    ? "speakline.recordAtCursorPreview"
-    : "speakline.recordAtCursor";
-
-  const args = duration ? [fileUri, line, duration] : [fileUri, line];
+  const endpoint = preview ? "/preview" : "/record";
 
   try {
-    const result = await client.sendRequest("workspace/executeCommand", {
-      command,
-      arguments: args,
+    const result = await sendCommand(endpoint, {
+      file_uri: fileUri,
+      line,
+      duration,
     });
 
-    if (result && typeof result === "string") {
-      const parsed = JSON.parse(result);
+    if (result.preview) {
+      // Show preview in a notification with accept/reject
+      const action = await vscode.window.showInformationMessage(
+        `Comment: "${result.comment}"`,
+        "Insert",
+        "Discard"
+      );
 
-      if (parsed.preview) {
-        // Show preview in a notification with accept/reject
-        const action = await vscode.window.showInformationMessage(
-          `Comment: "${parsed.comment}"`,
-          "Insert",
-          "Discard"
-        );
-
-        if (action === "Insert") {
-          await client.sendRequest("workspace/executeCommand", {
-            command: "speakline.insertComment",
-            arguments: [fileUri, line, parsed.comment],
-          });
-          vscode.window.showInformationMessage("Comment inserted!");
-        }
-      } else {
-        // Reload the file to show changes
-        const doc = editor.document;
-        if (doc.isDirty) {
-          // File was modified externally, need to revert to pick up changes
-          await vscode.commands.executeCommand("workbench.action.files.revert");
-        }
+      if (action === "Insert") {
+        await sendCommand("/insert", {
+          file_uri: fileUri,
+          line,
+          comment: result.comment,
+        });
+        vscode.window.showInformationMessage("Comment inserted!");
+        // Reload file to show changes
+        await vscode.commands.executeCommand("workbench.action.files.revert");
       }
+    } else {
+      // Reload the file to show changes
+      await vscode.commands.executeCommand("workbench.action.files.revert");
     }
   } catch (err: any) {
     vscode.window.showErrorMessage(`SpeakLine: ${err.message}`);
@@ -158,33 +197,19 @@ async function recordAtCursor(preview: boolean) {
 }
 
 async function transcribeOnly() {
-  if (!client) {
-    vscode.window.showErrorMessage(
-      "SpeakLine: LSP server failed to start. Ensure 'speakline' is installed: pip install speakline"
-    );
-    return;
-  }
-
   const config = vscode.workspace.getConfiguration("speakline");
   const duration = config.get<number | null>("recordingDuration", null);
 
   statusBarItem.text = "$(loading~spin) Recording...";
 
   try {
-    const result = await client.sendRequest("workspace/executeCommand", {
-      command: "speakline.transcribeOnly",
-      arguments: duration ? [duration] : [],
-    });
+    const result = await sendCommand("/transcribe", { duration });
 
-    if (result && typeof result === "string") {
-      const parsed = JSON.parse(result);
-
-      // Copy to clipboard and show
-      await vscode.env.clipboard.writeText(parsed.text);
-      vscode.window.showInformationMessage(
-        `Transcription (copied to clipboard): "${parsed.text}"`
-      );
-    }
+    // Copy to clipboard and show
+    await vscode.env.clipboard.writeText(result.text);
+    vscode.window.showInformationMessage(
+      `Transcription (copied to clipboard): "${result.text}"`
+    );
   } catch (err: any) {
     vscode.window.showErrorMessage(`SpeakLine: ${err.message}`);
   } finally {
@@ -199,13 +224,6 @@ async function insertCommentPrompt() {
     return;
   }
 
-  if (!client) {
-    vscode.window.showErrorMessage(
-      "SpeakLine: LSP server failed to start. Ensure 'speakline' is installed: pip install speakline"
-    );
-    return;
-  }
-
   const comment = await vscode.window.showInputBox({
     prompt: "Enter comment text to insert at cursor",
     placeHolder: "This function calculates the factorial",
@@ -217,9 +235,10 @@ async function insertCommentPrompt() {
   const line = editor.selection.active.line;
 
   try {
-    await client.sendRequest("workspace/executeCommand", {
-      command: "speakline.insertComment",
-      arguments: [fileUri, line, comment],
+    await sendCommand("/insert", {
+      file_uri: fileUri,
+      line,
+      comment,
     });
 
     await vscode.commands.executeCommand("workbench.action.files.revert");
@@ -229,10 +248,9 @@ async function insertCommentPrompt() {
   }
 }
 
-export function deactivate(): Thenable<void> | undefined {
+export function deactivate(): void {
   statusBarItem?.dispose();
-  if (client) {
-    return client.stop();
+  if (daemonProcess) {
+    daemonProcess.kill();
   }
-  return undefined;
 }
