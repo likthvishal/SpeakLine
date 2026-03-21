@@ -41,11 +41,18 @@ _recording_lock = threading.Lock()
 class _MockRecorder:
     """Simple no-op recorder for mock mode (avoids pyaudio dependency)."""
 
-    sample_rate = 16000  # Standard sample rate for audio
+    def __init__(self):
+        self._sample_rate = 16000
 
-    def record(self, duration: Optional[float] = None) -> bytes:
-        """Return empty audio bytes."""
-        return b""
+    @property
+    def sample_rate(self) -> int:
+        return self._sample_rate
+
+    def record(self, duration: Optional[float] = None, silence_detection: bool = True):
+        """Return mock audio as numpy array."""
+        import numpy as np
+        samples = int((duration or 3.0) * self._sample_rate)
+        return np.zeros(samples, dtype=np.float32)
 
 
 def _get_commenter() -> "VoiceCommenter":
