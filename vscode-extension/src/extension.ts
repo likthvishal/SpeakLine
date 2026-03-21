@@ -10,24 +10,10 @@ import {
 let client: LanguageClient | undefined;
 let statusBarItem: vscode.StatusBarItem;
 
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
   vscode.window.showInformationMessage("✓ SpeakLine extension activated");
 
-  // Status bar
-  statusBarItem = vscode.window.createStatusBarItem(
-    vscode.StatusBarAlignment.Left,
-    100
-  );
-  statusBarItem.text = "$(mic) SpeakLine";
-  statusBarItem.tooltip = "SpeakLine: Click to record comment at cursor";
-  statusBarItem.command = "speakline.recordAtCursor";
-  statusBarItem.show();
-  context.subscriptions.push(statusBarItem);
-
-  // Start LSP server
-  startLanguageServer(context);
-
-  // Register commands
+  // Register commands FIRST
   context.subscriptions.push(
     vscode.commands.registerCommand(
       "speakline.recordAtCursor",
@@ -46,32 +32,28 @@ export function activate(context: vscode.ExtensionContext) {
       insertCommentPrompt
     )
   );
+
+  // Status bar
+  statusBarItem = vscode.window.createStatusBarItem(
+    vscode.StatusBarAlignment.Left,
+    100
+  );
+  statusBarItem.text = "$(mic) SpeakLine";
+  statusBarItem.tooltip = "SpeakLine: Click to record comment at cursor";
+  statusBarItem.command = "speakline.recordAtCursor";
+  statusBarItem.show();
+  context.subscriptions.push(statusBarItem);
+
+  // Start LSP server and wait for it
+  await startLanguageServer(context);
 }
 
-function startLanguageServer(context: vscode.ExtensionContext) {
-  const config = vscode.workspace.getConfiguration("speakline");
-  const lspPort = config.get<number | null>("lspPort") ?? 8471;
+function startLanguageServer(context: vscode.ExtensionContext): Promise<void> {
+  vscode.window.showInformationMessage("Launching SpeakLine LSP server...");
 
-  vscode.window.showInformationMessage(`Connecting to LSP server on port ${lspPort}...`);
-
-  let serverOptions: ServerOptions;
-
-  // Always use TCP mode for reliability
-  serverOptions = () => {
-    const net = require("net");
-    return new Promise((resolve, reject) => {
-      const socket = new net.Socket();
-      socket.connect(lspPort, "127.0.0.1", () => {
-        vscode.window.showInformationMessage(`✓ Connected to LSP server on port ${lspPort}`);
-        resolve({ reader: socket, writer: socket });
-      });
-      socket.on("error", (err: Error) => {
-        vscode.window.showErrorMessage(
-          `✗ Cannot connect to LSP server on port ${lspPort}\n\nStart it with:\npython -m speakline.lsp --tcp 8471`
-        );
-        reject(err);
-      });
-    });
+  const serverOptions: ServerOptions = {
+    command: "python",
+    args: ["-m", "speakline.lsp"],
   };
 
   const clientOptions: LanguageClientOptions = {
@@ -85,16 +67,20 @@ function startLanguageServer(context: vscode.ExtensionContext) {
     clientOptions
   );
 
-  client.start().then(
-    () => {
-      vscode.window.showInformationMessage("✓ SpeakLine LSP initialized");
-    },
-    (err) => {
-      vscode.window.showErrorMessage(`✗ LSP init failed: ${err.message}`);
-    }
-  );
-
   context.subscriptions.push(client);
+
+  return new Promise((resolve, reject) => {
+    client!.start().then(
+      () => {
+        vscode.window.showInformationMessage("✓ SpeakLine LSP initialized");
+        resolve();
+      },
+      (err) => {
+        vscode.window.showErrorMessage(`✗ LSP init failed: ${err.message}`);
+        reject(err);
+      }
+    );
+  });
 }
 
 async function recordAtCursor(preview: boolean) {
