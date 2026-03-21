@@ -14,27 +14,54 @@ import os
 import sys
 import threading
 from http.server import HTTPServer, BaseHTTPRequestHandler
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 from urllib.parse import unquote
 
-from speakline.commenter import VoiceCommenter, VoiceCommenterError
 from speakline.parser import get_language_from_extension
 from speakline.transcriber import MockTranscriber
+
+if TYPE_CHECKING:
+    from speakline.commenter import VoiceCommenter
+
+# Import exception class early (doesn't require pyaudio)
+try:
+    from speakline.commenter import VoiceCommenterError
+except (ImportError, ModuleNotFoundError):
+    # Fallback: define a simple exception if import fails
+    class VoiceCommenterError(Exception):
+        pass
 
 logger = logging.getLogger(__name__)
 
 # Shared state
-_commenter: Optional[VoiceCommenter] = None
+_commenter: Optional["VoiceCommenter"] = None
 _recording_lock = threading.Lock()
 
 
-def _get_commenter() -> VoiceCommenter:
+class _MockRecorder:
+    """Simple no-op recorder for mock mode (avoids pyaudio dependency)."""
+
+    sample_rate = 16000  # Standard sample rate for audio
+
+    def record(self, duration: Optional[float] = None) -> bytes:
+        """Return empty audio bytes."""
+        return b""
+
+
+def _get_commenter() -> "VoiceCommenter":
     """Get or create a VoiceCommenter instance."""
     global _commenter
     if _commenter is None:
+        # Import here to avoid loading pyaudio unless needed
+        from speakline.commenter import VoiceCommenter
+
         backend = os.environ.get("SPEAKLINE_BACKEND", "whisper")
         if backend == "mock":
-            _commenter = VoiceCommenter(transcriber=MockTranscriber())
+            # Use mock transcriber AND mock recorder (avoids pyaudio dependency)
+            _commenter = VoiceCommenter(
+                transcriber=MockTranscriber(),
+                recorder=_MockRecorder()
+            )
         else:
             _commenter = VoiceCommenter()
     return _commenter
@@ -167,8 +194,11 @@ class SpeakLineDaemonHandler(BaseHTTPRequestHandler):
         except VoiceCommenterError as e:
             return {"ok": False, "error": f"SpeakLine error: {e}"}
         except Exception as e:
+            import traceback
             logger.exception("Unexpected error during transcription")
-            return {"ok": False, "error": f"Unexpected error: {e}"}
+            tb = traceback.format_exc()
+            logger.error(f"Traceback: {tb}")
+            return {"ok": False, "error": f"Unexpected error: {e}\n{tb}"}
 
     def _handle_insert(self, body: dict) -> dict:
         """Handle /insert endpoint."""
