@@ -19,6 +19,7 @@ from urllib.parse import unquote
 
 from speakline.commenter import VoiceCommenter, VoiceCommenterError
 from speakline.parser import get_language_from_extension
+from speakline.transcriber import MockTranscriber
 
 logger = logging.getLogger(__name__)
 
@@ -32,9 +33,10 @@ def _get_commenter() -> VoiceCommenter:
     global _commenter
     if _commenter is None:
         backend = os.environ.get("SPEAKLINE_BACKEND", "whisper")
-        _commenter = VoiceCommenter()
         if backend == "mock":
-            _commenter.transcriber = MockTranscriber()
+            _commenter = VoiceCommenter(transcriber=MockTranscriber())
+        else:
+            _commenter = VoiceCommenter()
     return _commenter
 
 
