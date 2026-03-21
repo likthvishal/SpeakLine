@@ -43,7 +43,7 @@ def record(
         None,
         "--duration",
         "-d",
-        help="Fixed recording duration in seconds. Uses silence detection if not set.",
+        help="Fixed recording duration in seconds (maximum 60). Uses silence detection if not set.",
     ),
     language: Optional[str] = typer.Option(
         None,
@@ -92,12 +92,20 @@ def record(
 
     Examples:
         speakline record myfile.py 42
-        speakline record main.js 15 --duration 5
+        speakline record main.js 15 --duration 60
         speakline record code.go 10 --backend openai
         speakline record myfile.py 42 --preview
         speakline record myfile.py 42 --format llm
     """
     setup_logging(verbose)
+
+    # Validate duration maximum
+    if duration is not None and duration > 60:
+        console.print(
+            "[bold red]Error:[/bold red] Duration cannot exceed 60 seconds. "
+            f"Got {duration}s instead."
+        )
+        raise typer.Exit(code=1)
 
     # Create transcriber
     transcriber = _create_transcriber(backend, model_size, api_key)
@@ -168,7 +176,7 @@ def transcribe(
         None,
         "--duration",
         "-d",
-        help="Fixed recording duration in seconds. Uses silence detection if not set.",
+        help="Fixed recording duration in seconds (maximum 60). Uses silence detection if not set.",
     ),
     backend: str = typer.Option(
         "whisper",
@@ -204,11 +212,19 @@ def transcribe(
 
     Examples:
         speakline transcribe
-        speakline transcribe --duration 10
+        speakline transcribe --duration 60
         speakline transcribe --backend openai
         speakline transcribe --format llm
     """
     setup_logging(verbose)
+
+    # Validate duration maximum
+    if duration is not None and duration > 60:
+        console.print(
+            "[bold red]Error:[/bold red] Duration cannot exceed 60 seconds. "
+            f"Got {duration}s instead."
+        )
+        raise typer.Exit(code=1)
 
     # Create transcriber
     transcriber = _create_transcriber(backend, model_size, api_key)
