@@ -224,9 +224,16 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="SpeakLine HTTP Daemon")
     parser.add_argument("--port", type=int, default=7777, help="HTTP port")
     parser.add_argument(
+        "--backend", type=str, default=os.environ.get("SPEAKLINE_BACKEND", "whisper"),
+        help="Transcription backend (whisper, openai, mock)"
+    )
+    parser.add_argument(
         "--log", type=str, default=None, help="Log file path"
     )
     args = parser.parse_args()
+
+    # Set backend for _get_commenter() to use
+    os.environ["SPEAKLINE_BACKEND"] = args.backend
 
     if args.log:
         logging.basicConfig(

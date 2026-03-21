@@ -57,15 +57,15 @@ async function startDaemon(context: vscode.ExtensionContext): Promise<void> {
     const pythonPath = config.get<string>("pythonPath", "python");
     const backend = config.get<string>("backend", "whisper");
 
-    // Prepare environment with backend setting
-    const env = { ...process.env, SPEAKLINE_BACKEND: backend };
-
-    // Spawn daemon process
-    daemonProcess = cp.spawn(pythonPath, ["-m", "speakline.daemon", "--port", String(DAEMON_PORT)], {
-      detached: true,
-      stdio: "ignore",
-      env,
-    });
+    // Spawn daemon process with backend as command-line arg
+    daemonProcess = cp.spawn(
+      pythonPath,
+      ["-m", "speakline.daemon", "--port", String(DAEMON_PORT), "--backend", backend],
+      {
+        detached: true,
+        stdio: "ignore",
+      }
+    );
 
     daemonProcess.unref();
 
