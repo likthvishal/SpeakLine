@@ -205,4 +205,7 @@ def get_formatter(
             f"Unknown formatter backend: {backend}. Use one of: {list(formatters)}"
         )
 
-    return formatters[backend](**kwargs)
+    cls = formatters[backend]
+    if cls is LLMFormatter:
+        return cls(**kwargs)
+    return cls()
