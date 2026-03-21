@@ -31,7 +31,10 @@ def _get_commenter() -> VoiceCommenter:
     """Get or create a VoiceCommenter instance."""
     global _commenter
     if _commenter is None:
+        backend = os.environ.get("SPEAKLINE_BACKEND", "whisper")
         _commenter = VoiceCommenter()
+        if backend == "mock":
+            _commenter.transcriber = MockTranscriber()
     return _commenter
 
 
