@@ -1,0 +1,6 @@
+2026-03-21 04:46:41,911 Starting TCP server on 127.0.0.1:8473
+2026-03-21 04:46:41,912 Using proactor: IocpProactor
+2026-03-21 04:46:41,913 Serving on ('127.0.0.1', 8473)
+2026-03-21 04:50:26,099 Connected to client
+2026-03-21 04:50:26,108 Main loop finished
+2026-03-21 04:50:26,108 Shutting down the server
