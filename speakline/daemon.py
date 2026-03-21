@@ -38,17 +38,17 @@ def _get_commenter() -> VoiceCommenter:
 def _uri_to_path(uri: str) -> Optional[str]:
     """Convert file URI to filesystem path."""
     if uri.startswith("file:///"):
-        # Windows: file:///C:/path -> C:/path
-        path = uri[8:] if len(uri) > 9 and uri[9] == ":" else uri[7:]
+        # Windows: file:///C:/path or file:///c%3A/path -> C:/path
+        path = uri[8:]  # Remove "file:///"
     elif uri.startswith("file://"):
-        path = uri[7:]
+        path = uri[7:]  # Remove "file://"
     else:
         path = uri
 
-    # URL decode
+    # URL decode first (handles %3A -> :, %20 -> space, etc.)
     path = unquote(path)
 
-    # Normalize separators
+    # Normalize separators (forward to backslash on Windows)
     path = path.replace("/", os.sep)
     return path
 
