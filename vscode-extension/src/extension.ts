@@ -52,14 +52,19 @@ async function startDaemon(context: vscode.ExtensionContext): Promise<void> {
   vscode.window.showInformationMessage("Starting SpeakLine daemon...");
 
   try {
-    // Get python path from config
+    // Get python path and backend from config
     const config = vscode.workspace.getConfiguration("speakline");
     const pythonPath = config.get<string>("pythonPath", "python");
+    const backend = config.get<string>("backend", "whisper");
+
+    // Prepare environment with backend setting
+    const env = { ...process.env, SPEAKLINE_BACKEND: backend };
 
     // Spawn daemon process
     daemonProcess = cp.spawn(pythonPath, ["-m", "speakline.daemon", "--port", String(DAEMON_PORT)], {
       detached: true,
       stdio: "ignore",
+      env,
     });
 
     daemonProcess.unref();
