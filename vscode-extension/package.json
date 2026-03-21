@@ -24,18 +24,7 @@
     "whisper",
     "speech-to-code"
   ],
-  "activationEvents": [
-    "onLanguage:python",
-    "onLanguage:javascript",
-    "onLanguage:typescript",
-    "onLanguage:go",
-    "onLanguage:rust",
-    "onLanguage:java",
-    "onLanguage:csharp",
-    "onLanguage:ruby",
-    "onLanguage:c",
-    "onLanguage:cpp"
-  ],
+  "activationEvents": ["onStartupFinished"],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
@@ -59,14 +48,14 @@
     "keybindings": [
       {
         "command": "speakline.recordAtCursor",
-        "key": "ctrl+shift+v",
-        "mac": "cmd+shift+v",
+        "key": "ctrl+shift+r",
+        "mac": "cmd+shift+r",
         "when": "editorTextFocus"
       },
       {
         "command": "speakline.recordAtCursorPreview",
-        "key": "ctrl+shift+alt+v",
-        "mac": "cmd+shift+alt+v",
+        "key": "ctrl+shift+alt+r",
+        "mac": "cmd+shift+alt+r",
         "when": "editorTextFocus"
       }
     ],

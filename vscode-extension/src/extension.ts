@@ -11,6 +11,8 @@ let client: LanguageClient | undefined;
 let statusBarItem: vscode.StatusBarItem;
 
 export function activate(context: vscode.ExtensionContext) {
+  vscode.window.showInformationMessage("✓ SpeakLine extension activated");
+
   // Status bar
   statusBarItem = vscode.window.createStatusBarItem(
     vscode.StatusBarAlignment.Left,
@@ -48,50 +50,32 @@ export function activate(context: vscode.ExtensionContext) {
 
 function startLanguageServer(context: vscode.ExtensionContext) {
   const config = vscode.workspace.getConfiguration("speakline");
-  const pythonPath = config.get<string>("pythonPath", "python");
-  const lspPort = config.get<number | null>("lspPort", null);
+  const lspPort = config.get<number | null>("lspPort") ?? 8471;
+
+  vscode.window.showInformationMessage(`Connecting to LSP server on port ${lspPort}...`);
 
   let serverOptions: ServerOptions;
 
-  if (lspPort) {
-    // TCP mode — connect to already-running server
-    serverOptions = () => {
-      const net = require("net");
-      return new Promise((resolve, reject) => {
-        const socket = new net.Socket();
-        socket.connect(lspPort, "127.0.0.1", () => {
-          resolve({ reader: socket, writer: socket });
-        });
-        socket.on("error", (err: Error) => {
-          vscode.window.showErrorMessage(
-            `SpeakLine: Cannot connect to LSP server on port ${lspPort}: ${err.message}`
-          );
-          reject(err);
-        });
+  // Always use TCP mode for reliability
+  serverOptions = () => {
+    const net = require("net");
+    return new Promise((resolve, reject) => {
+      const socket = new net.Socket();
+      socket.connect(lspPort, "127.0.0.1", () => {
+        vscode.window.showInformationMessage(`✓ Connected to LSP server on port ${lspPort}`);
+        resolve({ reader: socket, writer: socket });
       });
-    };
-  } else {
-    // stdio mode — spawn the LSP server as a child process
-    serverOptions = {
-      command: pythonPath,
-      args: ["-m", "speakline.lsp"],
-      transport: TransportKind.stdio,
-    };
-  }
+      socket.on("error", (err: Error) => {
+        vscode.window.showErrorMessage(
+          `✗ Cannot connect to LSP server on port ${lspPort}\n\nStart it with:\npython -m speakline.lsp --tcp 8471`
+        );
+        reject(err);
+      });
+    });
+  };
 
   const clientOptions: LanguageClientOptions = {
-    documentSelector: [
-      { scheme: "file", language: "python" },
-      { scheme: "file", language: "javascript" },
-      { scheme: "file", language: "typescript" },
-      { scheme: "file", language: "go" },
-      { scheme: "file", language: "rust" },
-      { scheme: "file", language: "java" },
-      { scheme: "file", language: "csharp" },
-      { scheme: "file", language: "ruby" },
-      { scheme: "file", language: "c" },
-      { scheme: "file", language: "cpp" },
-    ],
+    documentSelector: [{ scheme: "file" }],
   };
 
   client = new LanguageClient(
@@ -103,12 +87,10 @@ function startLanguageServer(context: vscode.ExtensionContext) {
 
   client.start().then(
     () => {
-      vscode.window.showInformationMessage("SpeakLine LSP server started");
+      vscode.window.showInformationMessage("✓ SpeakLine LSP initialized");
     },
     (err) => {
-      vscode.window.showErrorMessage(
-        `SpeakLine: Failed to start LSP server. Ensure 'speakline' is installed: pip install speakline\n${err.message}`
-      );
+      vscode.window.showErrorMessage(`✗ LSP init failed: ${err.message}`);
     }
   );
 
@@ -123,7 +105,9 @@ async function recordAtCursor(preview: boolean) {
   }
 
   if (!client) {
-    vscode.window.showErrorMessage("SpeakLine: LSP server not running");
+    vscode.window.showErrorMessage(
+      "SpeakLine: LSP server failed to start. Ensure 'speakline' is installed: pip install speakline"
+    );
     return;
   }
 
@@ -189,7 +173,9 @@ async function recordAtCursor(preview: boolean) {
 
 async function transcribeOnly() {
   if (!client) {
-    vscode.window.showErrorMessage("SpeakLine: LSP server not running");
+    vscode.window.showErrorMessage(
+      "SpeakLine: LSP server failed to start. Ensure 'speakline' is installed: pip install speakline"
+    );
     return;
   }
 
@@ -228,7 +214,9 @@ async function insertCommentPrompt() {
   }
 
   if (!client) {
-    vscode.window.showErrorMessage("SpeakLine: LSP server not running");
+    vscode.window.showErrorMessage(
+      "SpeakLine: LSP server failed to start. Ensure 'speakline' is installed: pip install speakline"
+    );
     return;
   }
 

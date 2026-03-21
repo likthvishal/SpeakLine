@@ -63,23 +63,28 @@ def on_initialize(params: types.InitializeParams) -> types.InitializeResult:
     )
 
 
-@server.feature(types.WORKSPACE_EXECUTE_COMMAND)
-def on_execute_command(params: types.ExecuteCommandParams) -> Optional[str]:
-    """Handle custom commands from the VS Code extension."""
-    command = params.command
-    args = params.arguments or []
+@server.command("speakline.recordAtCursor")
+def cmd_record_at_cursor(args: list) -> Optional[str]:
+    """Record voice at cursor and insert comment."""
+    return _handle_record_at_cursor(args, preview=False)
 
-    if command == "speakline.recordAtCursor":
-        return _handle_record_at_cursor(args, preview=False)
-    elif command == "speakline.recordAtCursorPreview":
-        return _handle_record_at_cursor(args, preview=True)
-    elif command == "speakline.transcribeOnly":
-        return _handle_transcribe_only(args)
-    elif command == "speakline.insertComment":
-        return _handle_insert_comment(args)
-    else:
-        server.show_message(f"Unknown command: {command}", types.MessageType.Error)
-        return None
+
+@server.command("speakline.recordAtCursorPreview")
+def cmd_record_at_cursor_preview(args: list) -> Optional[str]:
+    """Record voice at cursor (preview only)."""
+    return _handle_record_at_cursor(args, preview=True)
+
+
+@server.command("speakline.transcribeOnly")
+def cmd_transcribe_only(args: list) -> Optional[str]:
+    """Transcribe audio without inserting."""
+    return _handle_transcribe_only(args)
+
+
+@server.command("speakline.insertComment")
+def cmd_insert_comment(args: list) -> Optional[str]:
+    """Insert a comment directly."""
+    return _handle_insert_comment(args)
 
 
 def _handle_record_at_cursor(args: list, preview: bool = False) -> Optional[str]:
