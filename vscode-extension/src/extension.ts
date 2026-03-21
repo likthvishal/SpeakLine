@@ -97,6 +97,7 @@ async function waitForDaemonReady(): Promise<void> {
 
 async function sendCommand(endpoint: string, body: any): Promise<any> {
   return new Promise((resolve, reject) => {
+    const bodyStr = JSON.stringify(body);
     const options = {
       hostname: DAEMON_HOST,
       port: DAEMON_PORT,
@@ -104,6 +105,7 @@ async function sendCommand(endpoint: string, body: any): Promise<any> {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "Content-Length": Buffer.byteLength(bodyStr),
       },
     };
 
@@ -132,7 +134,7 @@ async function sendCommand(endpoint: string, body: any): Promise<any> {
       reject(err);
     });
 
-    req.write(JSON.stringify(body));
+    req.write(bodyStr);
     req.end();
   });
 }
