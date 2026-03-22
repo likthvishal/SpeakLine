@@ -1,18 +1,69 @@
-import { useState } from 'react';
-import { Mic, Square, Check, Volume2 } from 'lucide-react';
+import { useState, useRef, useCallback } from 'react';
+import { Mic, Square, Check, Volume2, AlertCircle } from 'lucide-react';
+
+type SpeechRecognitionEvent = Event & {
+  results: { [index: number]: { [index: number]: { transcript: string } } };
+};
 
 export default function Demo() {
   const [isRecording, setIsRecording] = useState(false);
   const [showResult, setShowResult] = useState(false);
+  const [transcript, setTranscript] = useState('');
+  const [error, setError] = useState('');
+  const recognitionRef = useRef<ReturnType<typeof createRecognition> | null>(null);
 
-  const handleRecord = () => {
-    setIsRecording(true);
-    setShowResult(false);
-    setTimeout(() => {
-      setIsRecording(false);
-      setShowResult(true);
-    }, 3000);
+  const createRecognition = () => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) return null;
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = 'en-US';
+    return recognition;
   };
+
+  const handleRecord = useCallback(() => {
+    setError('');
+    setShowResult(false);
+
+    if (isRecording && recognitionRef.current) {
+      recognitionRef.current.stop();
+      return;
+    }
+
+    const recognition = createRecognition();
+    if (!recognition) {
+      setError('Speech recognition is not supported in this browser. Try Chrome or Edge.');
+      return;
+    }
+
+    recognitionRef.current = recognition;
+
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
+      const text = event.results[0][0].transcript;
+      setTranscript(text);
+      setShowResult(true);
+      setIsRecording(false);
+    };
+
+    recognition.onerror = (event: Event & { error: string }) => {
+      setIsRecording(false);
+      if (event.error === 'not-allowed') {
+        setError('Microphone access denied. Please allow microphone permission.');
+      } else if (event.error === 'no-speech') {
+        setError('No speech detected. Please try again.');
+      } else {
+        setError(`Recognition error: ${event.error}`);
+      }
+    };
+
+    recognition.onend = () => {
+      setIsRecording(false);
+    };
+
+    recognition.start();
+    setIsRecording(true);
+  }, [isRecording]);
 
   const codeExample = `def calculate_total(items):
     # Calculate the sum of all item prices with tax applied
@@ -22,7 +73,7 @@ export default function Demo() {
     return total`;
 
   const codeWithComment = `def calculate_total(items):
-    # This function calculates the total price including 8% tax
+    # ${transcript}
     # Calculate the sum of all item prices with tax applied
     total = 0
     for item in items:
@@ -71,7 +122,7 @@ export default function Demo() {
                 </button>
 
                 <p className="mt-4 text-gray-500 text-sm">
-                  {isRecording ? 'Recording...' : 'Click to simulate recording'}
+                  {isRecording ? 'Listening... click to stop' : 'Click to start recording'}
                 </p>
 
                 {/* Waveform Animation */}
@@ -90,14 +141,23 @@ export default function Demo() {
                   </div>
                 )}
 
-                {showResult && (
+                {error && (
+                  <div className="mt-6 p-4 rounded-lg bg-red-50 border border-red-200 w-full">
+                    <div className="flex items-center gap-2 text-red-700">
+                      <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                      <span className="text-sm">{error}</span>
+                    </div>
+                  </div>
+                )}
+
+                {showResult && transcript && (
                   <div className="mt-6 p-4 rounded-lg bg-green-50 border border-green-200 w-full">
                     <div className="flex items-center gap-2 text-green-700 mb-2">
                       <Check className="w-5 h-5" />
                       <span className="font-medium">Transcribed!</span>
                     </div>
                     <p className="text-gray-600 italic">
-                      "This function calculates the total price including 8% tax"
+                      "{transcript}"
                     </p>
                   </div>
                 )}
