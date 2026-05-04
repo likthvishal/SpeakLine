@@ -16,7 +16,7 @@ Example:
     >>> updated = commenter.insert_comment_to_string(code, "My comment", 2)
 """
 
-__version__ = "0.4.0"
+__version__ = "0.4.1"
 
 from .commenter import VoiceCommenter, VoiceCommenterError
 from .recorder import (

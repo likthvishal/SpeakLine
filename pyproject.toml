@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "speakline"
-version = "0.4.0"
+version = "0.4.1"
 description = "Record voice and insert as inline code comments across any language and IDE"
 readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.9"
 authors = [
-    {name = "Likhith Vishal", email = "contact@speakline.org"}
+    {name = "Likith Vishal Boddeda", email = "contact@speakline.org"}
 ]
 keywords = ["voice", "comments", "code", "transcription", "whisper", "developer-tools", "speakline"]
 classifiers = [
