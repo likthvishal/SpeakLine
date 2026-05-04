@@ -32,3 +32,6 @@ vscode-extension/node_modules/
 .config/
 
 .vercel
+
+# Internal progress notes (not for commit)
+progress/

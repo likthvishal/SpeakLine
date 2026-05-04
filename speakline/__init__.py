@@ -16,7 +16,7 @@ Example:
     >>> updated = commenter.insert_comment_to_string(code, "My comment", 2)
 """
 
-__version__ = "0.3.1"
+__version__ = "0.4.0"
 
 from .commenter import VoiceCommenter, VoiceCommenterError
 from .recorder import (
@@ -31,6 +31,7 @@ from .recorder import (
 from .transcriber import (
     TranscriberBase,
     WhisperTranscriber,
+    FasterWhisperTranscriber,
     OpenAITranscriber,
     MockTranscriber,
     TranscriberError,
@@ -81,6 +82,7 @@ __all__ = [
     # Transcriber
     "TranscriberBase",
     "WhisperTranscriber",
+    "FasterWhisperTranscriber",
     "OpenAITranscriber",
     "MockTranscriber",
     "TranscriberError",

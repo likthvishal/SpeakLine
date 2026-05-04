@@ -6,6 +6,8 @@ import pytest
 from speakline.transcriber import (
     TranscriberBase,
     MockTranscriber,
+    FasterWhisperTranscriber,
+    WhisperTranscriber,
     get_transcriber,
 )
 
@@ -73,3 +75,13 @@ class TestGetTranscriber:
         """Test that invalid backend raises ValueError."""
         with pytest.raises(ValueError, match="Unknown transcriber backend"):
             get_transcriber("invalid_backend")
+
+    def test_get_faster_whisper_transcriber(self):
+        """Factory dispatches 'faster-whisper' to FasterWhisperTranscriber (no model load)."""
+        transcriber = get_transcriber("faster-whisper")
+        assert isinstance(transcriber, FasterWhisperTranscriber)
+
+    def test_get_whisper_transcriber(self):
+        """Factory dispatches 'whisper' to WhisperTranscriber (no model load)."""
+        transcriber = get_transcriber("whisper")
+        assert isinstance(transcriber, WhisperTranscriber)

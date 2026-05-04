@@ -42,9 +42,9 @@ class TestSilenceConfig:
     def test_default_values(self):
         """Test default silence detection values."""
         config = SilenceConfig()
-        assert config.threshold == 0.01
-        assert config.duration == 2.0
-        assert config.min_recording_duration == 1.0
+        assert config.threshold == 0.03
+        assert config.duration == 3.0
+        assert config.min_recording_duration == 3.0
 
 
 class TestMockRecorder:

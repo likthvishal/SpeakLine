@@ -81,7 +81,8 @@ speakline record myfile.py 42 --duration 5
 # Transcribe without modifying file
 speakline transcribe
 
-# LLM-powered comment cleanup (requires OPENAI_API_KEY)
+# LLM-powered comment cleanup (any OpenAI-compatible endpoint)
+# Set SPEAKLINE_LLM_API_KEY (or OPENAI_API_KEY); optionally SPEAKLINE_LLM_BASE_URL + SPEAKLINE_LLM_MODEL
 speakline record myfile.py 42 --format llm
 
 # Local rule-based cleanup (default, no API needed)
@@ -154,13 +155,18 @@ print(updated)
 #### 2. **Transcriber** (`transcriber.py`)
 Pluggable backends:
 - `WhisperTranscriber`: Local OpenAI Whisper model (no API key needed)
+- `FasterWhisperTranscriber`: Local CTranslate2-based Whisper — same models, **4-10x faster**, lower memory. Install with `pip install speakline[fast]`
 - `OpenAITranscriber`: OpenAI Whisper API
 - `MockTranscriber`: For testing without audio hardware
 
 ```python
-# Use local Whisper
+# Local Whisper (default)
 from speakline.transcriber import WhisperTranscriber
 transcriber = WhisperTranscriber(model_size="base")
+
+# Faster local Whisper (recommended)
+from speakline.transcriber import FasterWhisperTranscriber
+transcriber = FasterWhisperTranscriber(model_size="base", compute_type="int8")
 
 # Or OpenAI API
 from speakline.transcriber import OpenAITranscriber
@@ -175,8 +181,8 @@ Language-specific parsers:
 
 #### 4. **Comment Formatter** (`formatter.py`)
 Post-processing pipeline that cleans raw transcription into idiomatic comments:
-- `RuleBasedFormatter`: Local filler-word removal, no API needed (default)
-- `LLMFormatter`: OpenAI GPT-3.5 cleanup with surrounding code context
+- `RuleBasedFormatter`: Local filler-word removal, no API needed (default). Preserves identifier case (`getUserById`, `MAX_RETRIES`, `self.user_repo.find_one` stay intact).
+- `LLMFormatter`: Provider-agnostic — works with any OpenAI-compatible chat endpoint (OpenAI, Vercel AI Gateway, OpenRouter, Together, Groq, Ollama, llama.cpp). Defaults to `gpt-4o-mini`.
 - `PassthroughFormatter`: Raw transcription, no changes
 
 ```
@@ -210,6 +216,36 @@ class CustomLLMTranscriber(TranscriberBase):
 
 commenter = VoiceCommenter(transcriber=CustomLLMTranscriber())
 commenter.record_and_insert('file.py', line_number=10)
+```
+
+### LLM Provider Configuration
+
+`LLMFormatter` speaks the OpenAI Chat Completions protocol — point it at any provider that does too.
+
+```bash
+# OpenAI (default)
+export OPENAI_API_KEY=sk-...
+
+# Or any OpenAI-compatible gateway
+export SPEAKLINE_LLM_API_KEY=...
+export SPEAKLINE_LLM_BASE_URL=https://openrouter.ai/api/v1   # OpenRouter
+export SPEAKLINE_LLM_MODEL=anthropic/claude-haiku-4-5
+
+# Local Ollama
+export SPEAKLINE_LLM_BASE_URL=http://localhost:11434/v1
+export SPEAKLINE_LLM_MODEL=llama3.2
+export SPEAKLINE_LLM_API_KEY=ollama  # Ollama ignores it but the client requires one
+```
+
+```python
+from speakline.formatter import LLMFormatter
+
+# Programmatic equivalent
+formatter = LLMFormatter(
+    api_key="...",
+    base_url="https://openrouter.ai/api/v1",
+    model="anthropic/claude-haiku-4-5",
+)
 ```
 
 ### Custom Audio Config
@@ -296,7 +332,15 @@ mypy speakline/
 
 ## Security & Reliability
 
-### v0.3.0 (Current)
+### v0.4.0 (Current)
+✅ **What's New**
+- `FasterWhisperTranscriber` — 4-10x faster local transcription (`pip install speakline[fast]`)
+- Pluggable LLM provider — `LLMFormatter` works with any OpenAI-compatible endpoint via `SPEAKLINE_LLM_BASE_URL`
+- Default LLM model upgraded to `gpt-4o-mini` (cheaper + better than `gpt-3.5-turbo`)
+- `RuleBasedFormatter` now preserves identifier case (camelCase, PascalCase, CONSTANTS no longer mangled)
+- Internal: 8 duplicate language parsers collapsed to one shared algorithm
+
+### v0.3.0
 ✅ **Security Hardened**
 - Path traversal protection (blocks system directories)
 - Atomic file writes (prevents data corruption)

@@ -38,9 +38,9 @@ class SilenceConfig:
         min_recording_duration: Minimum recording duration before silence detection kicks in
     """
 
-    threshold: float = 0.01
-    duration: float = 2.0
-    min_recording_duration: float = 1.0
+    threshold: float = 0.03
+    duration: float = 3.0
+    min_recording_duration: float = 3.0
 
 
 class RecorderError(Exception):

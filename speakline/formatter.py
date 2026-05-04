@@ -70,27 +70,18 @@ class RuleBasedFormatter(FormatterBase):
         if not text:
             return text
 
-        text = text.lower()
-
-        # Remove filler words
         for pattern in self.FILLER_WORDS:
             text = re.sub(pattern, "", text, flags=re.IGNORECASE)
 
-        # Apply phrase replacements
         for pattern, replacement in self.PHRASE_REPLACEMENTS:
             text = re.sub(pattern, replacement, text, flags=re.IGNORECASE)
 
-        # Collapse whitespace
         text = re.sub(r"\s+", " ", text).strip()
-
-        # Remove leading/trailing commas
         text = text.strip(",").strip()
 
-        # Capitalize first letter
         if text:
             text = text[0].upper() + text[1:]
 
-        # Remove trailing period if it's a short comment (single sentence)
         if text.endswith(".") and text.count(".") == 1:
             text = text[:-1]
 
@@ -98,11 +89,21 @@ class RuleBasedFormatter(FormatterBase):
 
 
 class LLMFormatter(FormatterBase):
-    """LLM-powered formatter using OpenAI API.
+    """LLM-powered formatter via any OpenAI-compatible chat endpoint.
 
-    Transforms raw speech into idiomatic, concise code comments.
-    Uses GPT-3.5-turbo by default (fast, cheap, good enough).
+    Defaults to OpenAI + ``gpt-4o-mini`` (cheap and high-quality). Point at
+    any other provider — Vercel AI Gateway, OpenRouter, Together, Groq, or
+    a local Ollama / llama.cpp server — by overriding ``base_url`` and
+    ``model``, or via env vars.
+
+    Env vars (override constructor args when set):
+        SPEAKLINE_LLM_API_KEY   — falls back to OPENAI_API_KEY.
+        SPEAKLINE_LLM_BASE_URL  — e.g. https://openrouter.ai/api/v1
+        SPEAKLINE_LLM_MODEL     — e.g. ``anthropic/claude-haiku-4-5``
+                                  (when going through a gateway)
     """
+
+    DEFAULT_MODEL = "gpt-4o-mini"
 
     SYSTEM_PROMPT = (
         "You are a code comment formatter. You receive raw speech transcriptions "
@@ -122,10 +123,16 @@ class LLMFormatter(FormatterBase):
     def __init__(
         self,
         api_key: Optional[str] = None,
-        model: str = "gpt-3.5-turbo",
+        model: Optional[str] = None,
+        base_url: Optional[str] = None,
     ) -> None:
-        self._api_key = api_key or os.environ.get("OPENAI_API_KEY")
-        self._model = model
+        self._api_key = (
+            api_key
+            or os.environ.get("SPEAKLINE_LLM_API_KEY")
+            or os.environ.get("OPENAI_API_KEY")
+        )
+        self._model = model or os.environ.get("SPEAKLINE_LLM_MODEL") or self.DEFAULT_MODEL
+        self._base_url = base_url or os.environ.get("SPEAKLINE_LLM_BASE_URL")
         self._client = None
 
     def _get_client(self):
@@ -134,10 +141,13 @@ class LLMFormatter(FormatterBase):
                 import openai
                 if not self._api_key:
                     raise FormatterError(
-                        "OpenAI API key required for LLM formatter. "
-                        "Set OPENAI_API_KEY env var or pass api_key."
+                        "LLM API key required. Set SPEAKLINE_LLM_API_KEY (or "
+                        "OPENAI_API_KEY) or pass api_key."
                     )
-                self._client = openai.OpenAI(api_key=self._api_key)
+                kwargs = {"api_key": self._api_key}
+                if self._base_url:
+                    kwargs["base_url"] = self._base_url
+                self._client = openai.OpenAI(**kwargs)
             except ImportError:
                 raise FormatterError("openai package required: pip install openai")
         return self._client

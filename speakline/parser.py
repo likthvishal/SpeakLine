@@ -1,8 +1,8 @@
 """Code parsing module for language-aware comment insertion."""
 
-from abc import ABC, abstractmethod
 from typing import Optional, Dict, Type
 import logging
+import os
 import re
 
 logger = logging.getLogger(__name__)
@@ -20,82 +20,29 @@ class InvalidLineNumberError(ParserError):
     pass
 
 
-class ParserBase(ABC):
-    """Abstract base class for code parsers."""
+class ParserBase:
+    """Base class for line-comment parsers.
 
-    # Comment prefix for the language
+    Subclasses set ``comment_prefix`` for their language. The insertion
+    algorithm is identical across single-line-comment languages, so it
+    lives here.
+    """
+
     comment_prefix: str = "#"
 
-    @abstractmethod
     def insert_comment(self, code: str, comment: str, line_number: int) -> str:
-        """Insert a comment at the specified line number.
+        """Insert a comment before ``line_number`` (1-indexed).
 
-        Args:
-            code: Source code string.
-            comment: Comment text to insert.
-            line_number: Line number to insert the comment at (1-indexed).
-
-        Returns:
-            Modified code with the comment inserted.
+        Indentation is taken from the target line (or the previous line
+        when inserting at the end of the file).
 
         Raises:
-            ParserError: If insertion fails.
-            InvalidLineNumberError: If line number is out of range.
+            InvalidLineNumberError: If ``line_number`` is not an int or out of range.
         """
-        pass
-
-    def _get_indentation(self, line: str) -> str:
-        """Extract leading whitespace from a line."""
-        match = re.match(r"^(\s*)", line)
-        return match.group(1) if match else ""
-
-    def _format_comment(self, comment: str, indentation: str = "") -> str:
-        """Format comment text with proper prefix and indentation."""
-        # Handle multi-line comments
-        lines = comment.strip().split("\n")
-        formatted_lines = []
-
-        for line in lines:
-            formatted_lines.append(f"{indentation}{self.comment_prefix} {line.strip()}")
-
-        return "\n".join(formatted_lines)
-
-
-class GenericParser(ParserBase):
-    """Generic parser that works with any language using configurable comment prefix."""
-
-    def __init__(self, comment_prefix: str = "#") -> None:
-        """Initialize generic parser.
-
-        Args:
-            comment_prefix: Comment prefix for the language.
-        """
-        self.comment_prefix = comment_prefix
-
-    def insert_comment(self, code: str, comment: str, line_number: int) -> str:
-        """Insert comment at the specified line.
-
-        The comment is inserted before the target line, preserving the
-        indentation of the target line.
-
-        Args:
-            code: Source code string.
-            comment: Comment text to insert.
-            line_number: Line number (1-indexed) to insert the comment before.
-
-        Returns:
-            Code with the comment inserted.
-
-        Raises:
-            InvalidLineNumberError: If line number is out of range.
-        """
-        # Validate line_number is a valid integer
-        if not isinstance(line_number, int):
-            raise InvalidLineNumberError(f"Line number must be an integer, got {type(line_number).__name__}")
-
-        # Validate line_number is a valid integer
-        if not isinstance(line_number, int):
-            raise InvalidLineNumberError(f"Line number must be an integer, got {type(line_number).__name__}")
+        if not isinstance(line_number, int) or isinstance(line_number, bool):
+            raise InvalidLineNumberError(
+                f"Line number must be an integer, got {type(line_number).__name__}"
+            )
 
         lines = code.split("\n")
 
@@ -104,7 +51,6 @@ class GenericParser(ParserBase):
                 f"Line number {line_number} is out of range (1-{len(lines) + 1})"
             )
 
-        # Get indentation from target line (or previous line if inserting at end)
         if line_number <= len(lines):
             target_line = lines[line_number - 1]
         else:
@@ -112,298 +58,62 @@ class GenericParser(ParserBase):
 
         indentation = self._get_indentation(target_line)
         formatted_comment = self._format_comment(comment, indentation)
-
-        # Insert comment before the target line
         lines.insert(line_number - 1, formatted_comment)
 
         return "\n".join(lines)
+
+    def _get_indentation(self, line: str) -> str:
+        match = re.match(r"^(\s*)", line)
+        return match.group(1) if match else ""
+
+    def _format_comment(self, comment: str, indentation: str = "") -> str:
+        lines = comment.strip().split("\n")
+        return "\n".join(f"{indentation}{self.comment_prefix} {ln.strip()}" for ln in lines)
+
+
+class GenericParser(ParserBase):
+    """Parser with a runtime-configurable comment prefix."""
+
+    def __init__(self, comment_prefix: str = "#") -> None:
+        self.comment_prefix = comment_prefix
 
 
 class PythonParser(ParserBase):
-    """Parser for Python code with # comments."""
-
     comment_prefix = "#"
-
-    def insert_comment(self, code: str, comment: str, line_number: int) -> str:
-        """Insert Python comment at the specified line.
-
-        Args:
-            code: Python source code.
-            comment: Comment text to insert.
-            line_number: Line number (1-indexed) to insert the comment before.
-
-        Returns:
-            Code with the comment inserted.
-
-        Raises:
-            InvalidLineNumberError: If line number is out of range.
-        """
-        # Validate line_number is a valid integer
-        if not isinstance(line_number, int):
-            raise InvalidLineNumberError(f"Line number must be an integer, got {type(line_number).__name__}")
-
-        lines = code.split("\n")
-
-        if line_number < 1 or line_number > len(lines) + 1:
-            raise InvalidLineNumberError(
-                f"Line number {line_number} is out of range (1-{len(lines) + 1})"
-            )
-
-        # Get indentation from target line
-        if line_number <= len(lines):
-            target_line = lines[line_number - 1]
-            indentation = self._get_indentation(target_line)
-        else:
-            # Inserting at end, use previous line's indentation
-            indentation = self._get_indentation(lines[-1]) if lines else ""
-
-        formatted_comment = self._format_comment(comment, indentation)
-        lines.insert(line_number - 1, formatted_comment)
-
-        return "\n".join(lines)
 
 
 class JavaScriptParser(ParserBase):
-    """Parser for JavaScript/TypeScript code with // comments."""
-
     comment_prefix = "//"
-
-    def insert_comment(self, code: str, comment: str, line_number: int) -> str:
-        """Insert JavaScript comment at the specified line.
-
-        Args:
-            code: JavaScript/TypeScript source code.
-            comment: Comment text to insert.
-            line_number: Line number (1-indexed) to insert the comment before.
-
-        Returns:
-            Code with the comment inserted.
-
-        Raises:
-            InvalidLineNumberError: If line number is out of range.
-        """
-        # Validate line_number is a valid integer
-        if not isinstance(line_number, int):
-            raise InvalidLineNumberError(f"Line number must be an integer, got {type(line_number).__name__}")
-
-        lines = code.split("\n")
-
-        if line_number < 1 or line_number > len(lines) + 1:
-            raise InvalidLineNumberError(
-                f"Line number {line_number} is out of range (1-{len(lines) + 1})"
-            )
-
-        if line_number <= len(lines):
-            target_line = lines[line_number - 1]
-            indentation = self._get_indentation(target_line)
-        else:
-            indentation = self._get_indentation(lines[-1]) if lines else ""
-
-        formatted_comment = self._format_comment(comment, indentation)
-        lines.insert(line_number - 1, formatted_comment)
-
-        return "\n".join(lines)
 
 
 class TypeScriptParser(JavaScriptParser):
-    """Parser for TypeScript code (inherits from JavaScript)."""
-
     pass
 
 
 class GoParser(ParserBase):
-    """Parser for Go code with // comments."""
-
     comment_prefix = "//"
-
-    def insert_comment(self, code: str, comment: str, line_number: int) -> str:
-        """Insert Go comment at the specified line.
-
-        Args:
-            code: Go source code.
-            comment: Comment text to insert.
-            line_number: Line number (1-indexed) to insert the comment before.
-
-        Returns:
-            Code with the comment inserted.
-
-        Raises:
-            InvalidLineNumberError: If line number is out of range.
-        """
-        # Validate line_number is a valid integer
-        if not isinstance(line_number, int):
-            raise InvalidLineNumberError(f"Line number must be an integer, got {type(line_number).__name__}")
-
-        lines = code.split("\n")
-
-        if line_number < 1 or line_number > len(lines) + 1:
-            raise InvalidLineNumberError(
-                f"Line number {line_number} is out of range (1-{len(lines) + 1})"
-            )
-
-        if line_number <= len(lines):
-            target_line = lines[line_number - 1]
-            indentation = self._get_indentation(target_line)
-        else:
-            indentation = self._get_indentation(lines[-1]) if lines else ""
-
-        formatted_comment = self._format_comment(comment, indentation)
-        lines.insert(line_number - 1, formatted_comment)
-
-        return "\n".join(lines)
 
 
 class RustParser(ParserBase):
-    """Parser for Rust code with // comments."""
-
     comment_prefix = "//"
-
-    def insert_comment(self, code: str, comment: str, line_number: int) -> str:
-        """Insert Rust comment at the specified line."""
-        # Validate line_number is a valid integer
-        if not isinstance(line_number, int):
-            raise InvalidLineNumberError(f"Line number must be an integer, got {type(line_number).__name__}")
-
-        lines = code.split("\n")
-
-        if line_number < 1 or line_number > len(lines) + 1:
-            raise InvalidLineNumberError(
-                f"Line number {line_number} is out of range (1-{len(lines) + 1})"
-            )
-
-        if line_number <= len(lines):
-            target_line = lines[line_number - 1]
-            indentation = self._get_indentation(target_line)
-        else:
-            indentation = self._get_indentation(lines[-1]) if lines else ""
-
-        formatted_comment = self._format_comment(comment, indentation)
-        lines.insert(line_number - 1, formatted_comment)
-
-        return "\n".join(lines)
 
 
 class JavaParser(ParserBase):
-    """Parser for Java code with // comments."""
-
     comment_prefix = "//"
-
-    def insert_comment(self, code: str, comment: str, line_number: int) -> str:
-        """Insert Java comment at the specified line."""
-        # Validate line_number is a valid integer
-        if not isinstance(line_number, int):
-            raise InvalidLineNumberError(f"Line number must be an integer, got {type(line_number).__name__}")
-
-        lines = code.split("\n")
-
-        if line_number < 1 or line_number > len(lines) + 1:
-            raise InvalidLineNumberError(
-                f"Line number {line_number} is out of range (1-{len(lines) + 1})"
-            )
-
-        if line_number <= len(lines):
-            target_line = lines[line_number - 1]
-            indentation = self._get_indentation(target_line)
-        else:
-            indentation = self._get_indentation(lines[-1]) if lines else ""
-
-        formatted_comment = self._format_comment(comment, indentation)
-        lines.insert(line_number - 1, formatted_comment)
-
-        return "\n".join(lines)
 
 
 class CSharpParser(ParserBase):
-    """Parser for C# code with // comments."""
-
     comment_prefix = "//"
-
-    def insert_comment(self, code: str, comment: str, line_number: int) -> str:
-        """Insert C# comment at the specified line."""
-        # Validate line_number is a valid integer
-        if not isinstance(line_number, int):
-            raise InvalidLineNumberError(f"Line number must be an integer, got {type(line_number).__name__}")
-
-        lines = code.split("\n")
-
-        if line_number < 1 or line_number > len(lines) + 1:
-            raise InvalidLineNumberError(
-                f"Line number {line_number} is out of range (1-{len(lines) + 1})"
-            )
-
-        if line_number <= len(lines):
-            target_line = lines[line_number - 1]
-            indentation = self._get_indentation(target_line)
-        else:
-            indentation = self._get_indentation(lines[-1]) if lines else ""
-
-        formatted_comment = self._format_comment(comment, indentation)
-        lines.insert(line_number - 1, formatted_comment)
-
-        return "\n".join(lines)
 
 
 class RubyParser(ParserBase):
-    """Parser for Ruby code with # comments."""
-
     comment_prefix = "#"
-
-    def insert_comment(self, code: str, comment: str, line_number: int) -> str:
-        """Insert Ruby comment at the specified line."""
-        # Validate line_number is a valid integer
-        if not isinstance(line_number, int):
-            raise InvalidLineNumberError(f"Line number must be an integer, got {type(line_number).__name__}")
-
-        lines = code.split("\n")
-
-        if line_number < 1 or line_number > len(lines) + 1:
-            raise InvalidLineNumberError(
-                f"Line number {line_number} is out of range (1-{len(lines) + 1})"
-            )
-
-        if line_number <= len(lines):
-            target_line = lines[line_number - 1]
-            indentation = self._get_indentation(target_line)
-        else:
-            indentation = self._get_indentation(lines[-1]) if lines else ""
-
-        formatted_comment = self._format_comment(comment, indentation)
-        lines.insert(line_number - 1, formatted_comment)
-
-        return "\n".join(lines)
 
 
 class CppParser(ParserBase):
-    """Parser for C/C++ code with // comments."""
-
     comment_prefix = "//"
 
-    def insert_comment(self, code: str, comment: str, line_number: int) -> str:
-        """Insert C/C++ comment at the specified line."""
-        # Validate line_number is a valid integer
-        if not isinstance(line_number, int):
-            raise InvalidLineNumberError(f"Line number must be an integer, got {type(line_number).__name__}")
 
-        lines = code.split("\n")
-
-        if line_number < 1 or line_number > len(lines) + 1:
-            raise InvalidLineNumberError(
-                f"Line number {line_number} is out of range (1-{len(lines) + 1})"
-            )
-
-        if line_number <= len(lines):
-            target_line = lines[line_number - 1]
-            indentation = self._get_indentation(target_line)
-        else:
-            indentation = self._get_indentation(lines[-1]) if lines else ""
-
-        formatted_comment = self._format_comment(comment, indentation)
-        lines.insert(line_number - 1, formatted_comment)
-
-        return "\n".join(lines)
-
-
-# Language extension to parser mapping
 LANGUAGE_PARSERS: Dict[str, Type[ParserBase]] = {
     "python": PythonParser,
     "javascript": JavaScriptParser,
@@ -417,7 +127,6 @@ LANGUAGE_PARSERS: Dict[str, Type[ParserBase]] = {
     "cpp": CppParser,
 }
 
-# File extension to language mapping
 EXTENSION_TO_LANGUAGE: Dict[str, str] = {
     ".py": "python",
     ".pyw": "python",
@@ -443,18 +152,18 @@ EXTENSION_TO_LANGUAGE: Dict[str, str] = {
     ".hxx": "cpp",
 }
 
+LANGUAGE_ALIASES: Dict[str, str] = {
+    "py": "python",
+    "js": "javascript",
+    "ts": "typescript",
+    "cs": "csharp",
+    "c#": "csharp",
+    "c++": "cpp",
+}
+
 
 def get_language_from_extension(filepath: str) -> Optional[str]:
-    """Determine the programming language from file extension.
-
-    Args:
-        filepath: Path to the source file.
-
-    Returns:
-        Language name or None if not recognized.
-    """
-    import os
-
+    """Determine the programming language from file extension."""
     _, ext = os.path.splitext(filepath.lower())
     return EXTENSION_TO_LANGUAGE.get(ext)
 
@@ -462,17 +171,8 @@ def get_language_from_extension(filepath: str) -> Optional[str]:
 def get_parser(language: Optional[str] = None, filepath: Optional[str] = None) -> ParserBase:
     """Get a parser for the specified language or file.
 
-    Args:
-        language: Language name (e.g., 'python', 'javascript').
-        filepath: Path to source file (used to detect language if language is None).
-
-    Returns:
-        Parser instance for the language.
-
-    Raises:
-        ParserError: If no parser is available for the language.
+    Falls back to ``GenericParser`` when the language is unknown.
     """
-    # Try to detect language from file extension
     if language is None and filepath:
         language = get_language_from_extension(filepath)
 
@@ -481,22 +181,10 @@ def get_parser(language: Optional[str] = None, filepath: Optional[str] = None) -
         return GenericParser()
 
     language = language.lower()
+    resolved = LANGUAGE_ALIASES.get(language, language)
 
-    if language in LANGUAGE_PARSERS:
-        return LANGUAGE_PARSERS[language]()
-
-    # Check for common aliases
-    aliases = {
-        "py": "python",
-        "js": "javascript",
-        "ts": "typescript",
-        "cs": "csharp",
-        "c#": "csharp",
-        "c++": "cpp",
-    }
-
-    if language in aliases:
-        return LANGUAGE_PARSERS[aliases[language]]()
+    if resolved in LANGUAGE_PARSERS:
+        return LANGUAGE_PARSERS[resolved]()
 
     logger.warning(f"Unknown language '{language}', using generic parser")
     return GenericParser()

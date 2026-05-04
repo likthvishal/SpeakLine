@@ -31,6 +31,22 @@ class APIError(TranscriberError):
     pass
 
 
+def _resample(audio: np.ndarray, orig_sr: int, target_sr: int) -> np.ndarray:
+    """Resample audio to ``target_sr``. Uses scipy when available, else linear interp."""
+    if orig_sr == target_sr:
+        return audio.astype(np.float32)
+    try:
+        import scipy.signal
+
+        num_samples = int(len(audio) * target_sr / orig_sr)
+        return scipy.signal.resample(audio, num_samples).astype(np.float32)
+    except ImportError:
+        ratio = target_sr / orig_sr
+        indices = np.arange(0, len(audio), 1 / ratio)
+        indices = np.clip(indices, 0, len(audio) - 1).astype(int)
+        return audio[indices].astype(np.float32)
+
+
 class TranscriberBase(ABC):
     """Abstract base class for transcription backends."""
 
@@ -128,18 +144,80 @@ class WhisperTranscriber(TranscriberBase):
             raise TranscriberError(f"Transcription failed: {e}")
 
     def _resample(self, audio: np.ndarray, orig_sr: int, target_sr: int) -> np.ndarray:
-        """Resample audio to target sample rate."""
-        try:
-            import scipy.signal
+        return _resample(audio, orig_sr, target_sr)
 
-            num_samples = int(len(audio) * target_sr / orig_sr)
-            return scipy.signal.resample(audio, num_samples).astype(np.float32)
-        except ImportError:
-            # Simple linear interpolation fallback
-            ratio = target_sr / orig_sr
-            indices = np.arange(0, len(audio), 1 / ratio)
-            indices = np.clip(indices, 0, len(audio) - 1).astype(int)
-            return audio[indices]
+
+class FasterWhisperTranscriber(TranscriberBase):
+    """Transcriber using faster-whisper (CTranslate2 backend).
+
+    Drop-in alternative to ``WhisperTranscriber`` that runs the same
+    Whisper models 4-10x faster with significantly lower memory usage.
+    Requires ``pip install faster-whisper``.
+    """
+
+    def __init__(
+        self,
+        model_size: WhisperModelSize = "base",
+        device: str = "auto",
+        compute_type: str = "default",
+        language: Optional[str] = None,
+    ) -> None:
+        """Initialize the faster-whisper transcriber.
+
+        Args:
+            model_size: Whisper model size (tiny, base, small, medium, large).
+            device: Device for inference ('cpu', 'cuda', 'auto').
+            compute_type: Quantization mode ('default', 'int8', 'int8_float16',
+                'float16', 'float32'). 'int8' is fastest on CPU.
+            language: Language code (e.g., 'en'). None for auto-detect.
+        """
+        self._model_size = model_size
+        self._device = device
+        self._compute_type = compute_type
+        self._language = language
+        self._model: Optional["faster_whisper.WhisperModel"] = None
+
+    def _load_model(self) -> "faster_whisper.WhisperModel":
+        if self._model is None:
+            try:
+                from faster_whisper import WhisperModel
+
+                logger.info(f"Loading faster-whisper model: {self._model_size}")
+                self._model = WhisperModel(
+                    self._model_size,
+                    device=self._device,
+                    compute_type=self._compute_type,
+                )
+                logger.info("faster-whisper model loaded")
+            except ImportError:
+                raise ModelNotFoundError(
+                    "faster-whisper is not installed. Install it with: "
+                    "pip install faster-whisper  (or: pip install speakline[fast])"
+                )
+            except Exception as e:
+                raise TranscriberError(f"Failed to load faster-whisper model: {e}")
+        return self._model
+
+    def transcribe(self, audio: np.ndarray, sample_rate: int = 16000) -> str:
+        model = self._load_model()
+
+        try:
+            audio = audio.astype(np.float32)
+            if sample_rate != 16000:
+                audio = _resample(audio, sample_rate, 16000)
+
+            kwargs = {}
+            if self._language:
+                kwargs["language"] = self._language
+
+            segments, _info = model.transcribe(audio, **kwargs)
+            text = "".join(seg.text for seg in segments).strip()
+
+            logger.info(f"faster-whisper transcription: '{text[:50]}...' ({len(text)} chars)")
+            return text
+
+        except Exception as e:
+            raise TranscriberError(f"faster-whisper transcription failed: {e}")
 
 
 class OpenAITranscriber(TranscriberBase):
@@ -261,13 +339,15 @@ class MockTranscriber(TranscriberBase):
 
 
 def get_transcriber(
-    backend: Literal["whisper", "openai", "mock"] = "whisper",
+    backend: Literal["whisper", "faster-whisper", "openai", "mock"] = "whisper",
     **kwargs,
 ) -> TranscriberBase:
     """Factory function to get a transcriber instance.
 
     Args:
-        backend: Transcription backend to use.
+        backend: Transcription backend — 'whisper' (local openai-whisper),
+            'faster-whisper' (CTranslate2, 4-10x faster), 'openai' (API),
+            or 'mock' (testing).
         **kwargs: Additional arguments passed to the transcriber.
 
     Returns:
@@ -278,6 +358,7 @@ def get_transcriber(
     """
     transcribers = {
         "whisper": WhisperTranscriber,
+        "faster-whisper": FasterWhisperTranscriber,
         "openai": OpenAITranscriber,
         "mock": MockTranscriber,
     }
